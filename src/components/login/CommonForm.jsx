@@ -38,7 +38,10 @@ const CommonForm = ({ pageType }) => {
                 icon={input.icon}
               />
             ))}
-        <Button type="submit">
+        <Button
+          type="submit"
+          onClick={() => navigate(pageType == 'login' ? '/' : '/login')}
+        >
           {pageType == 'login' ? '로그인' : '회원가입'}
         </Button>
       </Form>

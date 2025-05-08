@@ -1,8 +1,10 @@
+import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { NaviLogo } from '../../assets/common'
 import { ImExit } from 'react-icons/im'
 
 const Nav = () => {
+  const navigate = useNavigate()
   return (
     <NavSection>
       <HomeBtn>
@@ -10,7 +12,7 @@ const Nav = () => {
       </HomeBtn>
       <NavItems>
         <UserName>스칼라 님</UserName>
-        <ExitBtn>
+        <ExitBtn onClick={() => navigate('/login')}>
           <ImExit size={30} color="#FF8B8B" />
         </ExitBtn>
       </NavItems>
