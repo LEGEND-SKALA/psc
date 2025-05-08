@@ -43,6 +43,6 @@ public class User {
         this.department = UserDepartment.valueOf(request.getDepartment());  // 문자열 → enum
         this.email = request.getEmail();
         this.password = request.getPassword();
-        this.role = UserRole.USER;
+        this.role = UserRole.valueOf(request.getRole());
     }
 }

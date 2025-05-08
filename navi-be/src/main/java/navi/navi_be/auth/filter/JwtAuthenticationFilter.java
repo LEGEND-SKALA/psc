@@ -1,9 +1,10 @@
 package navi.navi_be.auth.filter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -20,7 +21,7 @@ import navi.navi_be.common.util.JwtUtil;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
-    private final UserRepository userRepository; 
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -34,11 +35,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(7);
             if (jwtUtil.validateToken(token)) {
                 String employeeId = jwtUtil.extractEmployeeId(token);
+                String role = jwtUtil.extractRole(token); // 👈 추가된 부분
+
                 User user = userRepository.findByEmployeeId(employeeId).orElse(null);
 
                 if (user != null) {
+                    List<SimpleGrantedAuthority> authorities =
+                            List.of(new SimpleGrantedAuthority("ROLE_" + role)); // ROLE_ prefix 필수
+
                     UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+                            new UsernamePasswordAuthenticationToken(user, null, authorities);
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }

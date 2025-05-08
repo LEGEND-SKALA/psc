@@ -34,7 +34,7 @@ public class AuthService {
             throw new AuthException("사번 또는 비밀번호가 일치하지 않습니다.");
         }
         
-        String token = jwtUtil.generateToken(user.getEmployeeId());
+        String token = jwtUtil.generateToken(user.getEmployeeId(), user.getRole().name());
 
         // 실제로는 JWT 생성
         return new AuthResponse(token, "Bearer");
