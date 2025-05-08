@@ -45,9 +45,13 @@ def build_vectordb(target: str):
             index.add(np.array([img_embedding], dtype=np.float32))
             docs.append(Document(page_content=f"Image from {file.stem} (index {idx})", metadata={"source": str(file), "type": f"image_{idx}"}))
 
+    # 변경된 부분: index_to_docstore_id 인자 명시적으로 추가
     faiss.write_index(index, os.path.join(vectordb_dir, "index.faiss"))
     docstore = InMemoryDocstore({str(i): doc for i, doc in enumerate(docs)})
-    lc_faiss = LangChainFAISS(index, docstore, {i: str(i) for i in range(len(docs))})
+    lc_faiss = LangChainFAISS(embedding_function=embed_text,
+                              index=index,
+                              docstore=docstore,
+                              index_to_docstore_id={i: str(i) for i in range(len(docs))})
     lc_faiss.save_local(vectordb_dir)
 
     print(f"✅ Saved VectorDB to {vectordb_dir}")
