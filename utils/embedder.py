@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 from sentence_transformers import SentenceTransformer
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from config import EMBEDDING_MODEL
 
 # SentenceTransformer 직접 로드
