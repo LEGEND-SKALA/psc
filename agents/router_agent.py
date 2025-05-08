@@ -131,11 +131,11 @@ def route_with_trace(user_input: str) -> dict:
     if intent == "regulation":
         from agents import regulation_agent
         docs = regulation_agent.search_docs(user_input)
-        doc_names = list({Path(doc.metadata.get("source", "unknown")).name for doc in docs})
+        doc_names = sorted({Path(doc.metadata.get("source", "unknown")).name for doc in docs})
     elif intent == "space":
         from agents import space_agent
         docs = space_agent.search_docs(user_input)
-        doc_names = list({Path(doc.metadata.get("source", "unknown")).name for doc in docs})
+        doc_names = sorted({Path(doc.metadata.get("source", "unknown")).name for doc in docs})
 
     return {
         "intent": intent,
