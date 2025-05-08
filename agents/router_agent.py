@@ -2,7 +2,7 @@ from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langgraph.graph import StateGraph, END, START
 from typing import TypedDict, Optional, Literal
-
+from pathlib import Path
 from agents import regulation_agent, space_agent, worker_agent, general_agent
 
 # ----------------------------
@@ -127,18 +127,18 @@ def route_with_trace(user_input: str) -> dict:
     response = result.get("response")
 
     # RAG 기반인지 판별 (regulation, space 만 해당)
-    context = None
+    doc_names = None
     if intent == "regulation":
         from agents import regulation_agent
         docs = regulation_agent.search_docs(user_input)
-        context = "\n---\n".join([doc.page_content for doc in docs])
+        doc_names = list({Path(doc.metadata.get("source", "unknown")).name for doc in docs})
     elif intent == "space":
         from agents import space_agent
         docs = space_agent.search_docs(user_input)
-        context = "\n---\n".join([doc.page_content for doc in docs])
+        doc_names = list({Path(doc.metadata.get("source", "unknown")).name for doc in docs})
 
     return {
         "intent": intent,
         "response": response,
-        "context": context
+        "doc_names": doc_names
     }
