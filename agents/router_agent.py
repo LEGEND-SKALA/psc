@@ -116,3 +116,29 @@ runnable = graph.compile()
 def route(user_input: str) -> str:
     result = runnable.invoke({"user_input": user_input})
     return result["response"]
+
+# 통합 테스트용 확장 함수
+def route_with_trace(user_input: str) -> dict:
+    # 원래 route() 호출
+    result = runnable.invoke({"user_input": user_input})
+
+    # intent 정보만 추출
+    intent = result.get("intent")
+    response = result.get("response")
+
+    # RAG 기반인지 판별 (regulation, space 만 해당)
+    context = None
+    if intent == "regulation":
+        from agents import regulation_agent
+        docs = regulation_agent.search_docs(user_input)
+        context = "\n---\n".join([doc.page_content for doc in docs])
+    elif intent == "space":
+        from agents import space_agent
+        docs = space_agent.search_docs(user_input)
+        context = "\n---\n".join([doc.page_content for doc in docs])
+
+    return {
+        "intent": intent,
+        "response": response,
+        "context": context
+    }
