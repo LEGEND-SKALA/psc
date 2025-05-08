@@ -4,13 +4,13 @@ from dotenv import load_dotenv
 # 데이터 경로 설정
 DATA_DIRS = {
     "regulation": {
-        "raw": "./data/raw/regulation_pdfs",
-        "processed": "./data/processed/regulation_texts",
+        "raw": "./data/raw/regulation",
+        "processed": "./data/processed/regulation",
         "embeddings": "./data/embeddings/regulation"
     },
     "space": {
-        "raw": "./data/raw/space_pdfs",
-        "processed": "./data/processed/space_texts",
+        "raw": "./data/raw/space",
+        "processed": "./data/processed/space",
         "embeddings": "./data/embeddings/space"
     }
 }
