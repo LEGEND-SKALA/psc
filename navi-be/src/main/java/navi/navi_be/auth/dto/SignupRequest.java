@@ -13,4 +13,5 @@ public class SignupRequest {
     private String department;
     private String email;
     private String password;
+    private String role;
 }

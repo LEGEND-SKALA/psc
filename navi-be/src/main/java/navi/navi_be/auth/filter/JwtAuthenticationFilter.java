@@ -12,12 +12,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import navi.navi_be.auth.entity.User;
+import navi.navi_be.auth.repository.UserRepository;
 import navi.navi_be.common.util.JwtUtil;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository; 
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -31,10 +34,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(7);
             if (jwtUtil.validateToken(token)) {
                 String employeeId = jwtUtil.extractEmployeeId(token);
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(employeeId, null, Collections.emptyList());
+                User user = userRepository.findByEmployeeId(employeeId).orElse(null);
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                if (user != null) {
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
         }
 
