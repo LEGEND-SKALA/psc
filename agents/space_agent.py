@@ -26,3 +26,6 @@ def run(user_input: str, prompt: str = DEFAULT_PROMPT) -> str:
     context = "\n".join([d.page_content for d in docs])
     final_prompt = prompt.format(context=context, user_input=user_input)
     return llm.invoke(final_prompt).content
+
+def search_docs(user_input: str):
+    return search("space", user_input, k=3)

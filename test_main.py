@@ -1,4 +1,4 @@
-from agents.router_agent import route
+from agents.router_agent import route_with_trace
 
 if __name__ == "__main__":
     while True:
@@ -6,7 +6,14 @@ if __name__ == "__main__":
         if user_input.lower() == "exit":
             break
 
-        response = route(user_input)
+        result = route_with_trace(user_input)
+
+        print("\n=== 처리한 에이전트 ===")
+        print(result["intent"])
 
         print("\n=== 최종 응답 ===")
-        print(response)
+        print(result["response"])
+
+        if result.get("context"):
+            print("\n=== 참조 문서 (RAG 사용됨) ===")
+            print(result["context"])
