@@ -138,6 +138,7 @@ const Input = styled.input`
   border: none;
   width: 100%;
   font-size: 0.9rem;
+  height: 1.1rem;
 
   &:focus {
     outline: none;
