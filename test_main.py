@@ -14,6 +14,7 @@ if __name__ == "__main__":
         print("\n=== 최종 응답 ===")
         print(result["response"])
 
-        if result.get("context"):
+        if result.get("doc_names"):
             print("\n=== 참조 문서 (RAG 사용됨) ===")
-            print(result["context"])
+            for doc_name in result["doc_names"]:
+                print(f"- {doc_name}")
