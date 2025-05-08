@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { NaviLogo } from '../../assets/common'
 import { IoMdPricetag } from 'react-icons/io'
@@ -5,7 +6,9 @@ import { BiSolidLock, BiSolidBriefcase } from 'react-icons/bi'
 import { HiMail } from 'react-icons/hi'
 import { FaCircleUser } from 'react-icons/fa6'
 
-const CommonForm = ({ pageType, setPageType }) => {
+const CommonForm = ({ pageType }) => {
+  const navigate = useNavigate()
+
   return (
     <FormWrapper>
       {/* 로그인/회원가입  */}
@@ -48,7 +51,7 @@ const CommonForm = ({ pageType, setPageType }) => {
             : '* 모든 항목은 필수 입력 사항입니다'}
         </ForgotPassword>
         <SignUp
-          onClick={() => setPageType(pageType == 'login' ? 'signup' : 'login')}
+          onClick={() => navigate(pageType == 'login' ? '/sign-up' : '/login')}
         >
           {pageType == 'login' ? '회원가입' : '로그인하기'}
         </SignUp>

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import CommonForm from '../components/login/CommonForm'
 import { SKLogo } from '../assets/common'
@@ -7,6 +8,12 @@ import backgroundImg from '../assets/login/img_login_background.svg'
 const LoginPage = () => {
   // login or signup
   const [pageType, setPageType] = useState('login')
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.pathname === '/login') setPageType('login')
+    else setPageType('signup')
+  }, [location.pathname])
 
   return (
     <LoginPageContainer>
