@@ -11,8 +11,20 @@ from utils.pdf_loader import extract_text_chunks_from_pdf, extract_images_from_p
 from config import VECTORDB_DIRS
 
 def add_document(pdf_path: str, target: str, security_level: str = "중"):
+    from langchain_community.docstore.in_memory import InMemoryDocstore
+    import faiss
+
     vectordb_dir = VECTORDB_DIRS[target]
-    vectordb = LangChainFAISS.load_local(vectordb_dir, embed_text, allow_dangerous_deserialization=True)
+
+    # ✅ 예외 발생 시 빈 DB 생성
+    try:
+        vectordb = LangChainFAISS.load_local(vectordb_dir, embed_text, allow_dangerous_deserialization=True)
+    except Exception as e:
+        print(f"❗ 기존 벡터DB 로드 실패. 새로 생성합니다: {e}")
+        index = faiss.IndexFlatL2(384)
+        vectordb = LangChainFAISS(index=index, docstore=InMemoryDocstore({}), index_to_docstore_id={}, embedding_function=embed_text)
+
+    print(f"📌 [add_document] 시작 - 경로: {pdf_path}, 카테고리: {target}, 보안등급: {security_level}")
 
     chunks = extract_text_chunks_from_pdf(pdf_path)
     for i, chunk in enumerate(chunks):
@@ -29,7 +41,8 @@ def add_document(pdf_path: str, target: str, security_level: str = "중"):
         vectordb.docstore._dict[str(len(vectordb.docstore._dict))] = doc
 
     vectordb.save_local(vectordb_dir)
-    print(f"✅ 문서 추가 완료: {pdf_path}")
+    print(f"✅ 문서 추가 및 저장 완료: {vectordb_dir}")
+
 
 def list_documents(target: str):
     vectordb_dir = VECTORDB_DIRS[target]
