@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
+import jakarta.transaction.Transactional;
 import navi.navi_be.auth.entity.User;
 import navi.navi_be.chat.entity.ChatMessage;
 
@@ -17,4 +19,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     // ID 기준 조회 (삭제되지 않은 메시지)
     Optional<ChatMessage> findByIdAndDeletedAtIsNull(Long id);
+
+    @Modifying
+    @Transactional
+    void deleteByUser(User user);
 }

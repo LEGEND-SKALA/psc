@@ -5,10 +5,12 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import navi.navi_be.auth.entity.User;
 import navi.navi_be.auth.model.UserRole;
 import navi.navi_be.auth.repository.UserRepository;
+import navi.navi_be.chat.repository.ChatMessageRepository;
 import navi.navi_be.common.exception.UserNotFoundException;
 import navi.navi_be.useradmin.dto.UserListResponse;
 
@@ -16,6 +18,7 @@ import navi.navi_be.useradmin.dto.UserListResponse;
 @RequiredArgsConstructor
 public class AdminUserService {
     private final UserRepository userRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     public List<UserListResponse> getAllUsers() {
         return userRepository.findAll().stream()
@@ -42,10 +45,12 @@ public class AdminUserService {
         }
     }
 
+    @Transactional
     public void deleteUser(Long userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new UserNotFoundException(userId);
-        }
-        userRepository.deleteById(userId);
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
+
+        chatMessageRepository.deleteByUser(user); // 메시지 먼저 삭제
+        userRepository.delete(user);              // 그 다음 유저 삭제
     }
 }

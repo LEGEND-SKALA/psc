@@ -45,6 +45,7 @@ public class AdminUserController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{userId}")
     public ResponseEntity<ApiResponse<String>> deleteUser(@PathVariable Long userId) {
+        
         adminUserService.deleteUser(userId);
         return ResponseEntity.ok(
             new ApiResponse<>(200, "사용자가 성공적으로 삭제되었습니다.", null)
