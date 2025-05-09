@@ -1,0 +1,433 @@
+import styled from 'styled-components'
+import { FileUpload } from '.'
+import { SlArrowUp, SlArrowDown } from 'react-icons/sl'
+
+const MainDocument = () => {
+  return (
+    <>
+      <TitleTop>
+        <H1>문서 관리</H1>
+        <SaveBtn>저장하기</SaveBtn>
+      </TitleTop>
+
+      <Container>
+        <LeftContent>
+          <div>
+            <SubTitle>최근 수정 날짜</SubTitle>
+
+            <Wrapper>
+              <BoldText>2025년 5월 8일 목요일</BoldText>
+              <LightText style={{ margin: '0.4rem 0 0' }}>
+                오전 9시 20분
+              </LightText>
+            </Wrapper>
+          </div>
+
+          <div>
+            <SubTitle>총 문서 수</SubTitle>
+            <Wrapper>
+              <LightText>
+                <div>PDF 파일</div>
+                <div>10개</div>
+              </LightText>
+              <LightText style={{ margin: '0.4rem 0 0.6rem' }}>
+                <div>Text 파일</div>
+                <div>2개</div>
+              </LightText>
+              <BoldText>
+                <div>총 문서 수</div>
+                <div>12개</div>
+              </BoldText>
+            </Wrapper>
+          </div>
+
+          <FileUploadWrapper>
+            <SubTitle>파일 업로드</SubTitle>
+            <FileUpload />
+          </FileUploadWrapper>
+        </LeftContent>
+
+        <RightContent>
+          <RightContentWrapper style={{ flex: 1 }}>
+            <SubTitle>문서 목록</SubTitle>
+            <Wrapper style={{ flex: 1, minHeight: 0 }}>
+              <DocumentTitleWrapper>
+                <div>문서명</div>
+                <div>파일형식</div>
+                <div>보안등급</div>
+                <div>등록DB</div>
+                <div>업로드 날짜</div>
+              </DocumentTitleWrapper>
+              <ListItems>
+                {documentList.map((item, index) => (
+                  <DocumentItem
+                    key={index}
+                    fileName={item.fileName}
+                    fileType={item.fileType}
+                    securityLevel={item.securityLevel}
+                    registeredDB={item.registeredDB}
+                    uploadDate={item.uploadDate}
+                  />
+                ))}
+              </ListItems>
+            </Wrapper>
+          </RightContentWrapper>
+
+          <EditBtns>
+            <DownBtn>
+              <SlArrowDown size="25" color="#fff" />
+            </DownBtn>
+            <UpBtn>
+              <SlArrowUp size="25" color="#fff" />
+            </UpBtn>
+          </EditBtns>
+
+          <RightContentWrapper style={{ flex: 1 }}>
+            <SubTitle>수정 문서 목록</SubTitle>
+            <Wrapper style={{ flex: 1, minHeight: 0 }}>
+              <DocumentTitleWrapper>
+                <div>문서명</div>
+                <div>파일형식</div>
+                <div>보안등급</div>
+                <div>등록DB</div>
+                <div>업로드 날짜</div>
+              </DocumentTitleWrapper>
+              <ListItems>
+                {documentList.map((item, index) => (
+                  <DocumentItem
+                    key={index}
+                    fileName={item.fileName}
+                    fileType={item.fileType}
+                    securityLevel={item.securityLevel}
+                    registeredDB={item.registeredDB}
+                    uploadDate={item.uploadDate}
+                  />
+                ))}
+              </ListItems>
+            </Wrapper>
+          </RightContentWrapper>
+        </RightContent>
+      </Container>
+    </>
+  )
+}
+export default MainDocument
+
+const DocumentItem = ({
+  fileName,
+  fileType,
+  securityLevel,
+  registeredDB,
+  uploadDate,
+}) => {
+  return (
+    <DocumentItemWrapper>
+      <div>{fileName}</div>
+      <div>
+        <Tag
+          color={fileType === 'PDF' ? '#6D5C9D' : '#5C5C5C'}
+          backgroundColor={fileType === 'PDF' ? '#E9E1FF' : '#EDEDED'}
+        >
+          {fileType}
+        </Tag>
+      </div>
+      <div>
+        <Tag
+          color={
+            securityLevel === '상'
+              ? '#CF607B'
+              : securityLevel === '중'
+              ? '#DD8E1F'
+              : '#586773'
+          }
+          backgroundColor={
+            securityLevel === '상'
+              ? '#FDE9EE'
+              : securityLevel === '중'
+              ? '#FBF4E7'
+              : '#E1F1FF'
+          }
+        >
+          {securityLevel}
+        </Tag>
+      </div>
+      <div>
+        <Tag
+          color={registeredDB === '법률' ? '#D47624' : '#5F9650'}
+          backgroundColor={registeredDB === '법률' ? '#FFE3CB' : '#E4F6DF'}
+        >
+          {registeredDB}
+        </Tag>
+      </div>
+      <div>{uploadDate}</div>
+    </DocumentItemWrapper>
+  )
+}
+
+const TitleTop = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`
+const H1 = styled.h1`
+  font-size: 1.3rem;
+  margin: 0;
+`
+const SaveBtn = styled.button`
+  background-color: #4294ff;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
+  color: white;
+  border: none;
+  padding: 0.9rem 1.5rem;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 15px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #3a7bff;
+  }
+  &:active {
+    background-color: #2f6eff;
+  }
+`
+const SubTitle = styled.h2`
+  font-size: 1rem;
+  margin: 0;
+  margin-bottom: 0.5rem;
+`
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0.8rem 1rem;
+  background-color: #fff;
+  border-radius: 15px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+`
+const Container = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  gap: 2rem;
+  box-sizing: border-box;
+  min-height: 0;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 0;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+`
+const LeftContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`
+const RightContent = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+`
+
+const BoldText = styled.p`
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  margin: 0;
+  font-size: 0.9rem;
+`
+const LightText = styled.p`
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  font-size: 0.9rem;
+`
+
+const RightContentWrapper = styled.div`
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+`
+const ListItems = styled.div`
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+`
+const DocumentItemWrapper = styled.div`
+  display: flex;
+  padding: 0.7rem 0;
+  align-items: center;
+
+  border-bottom: 1px solid #f7f7f7;
+
+  & > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  & > div:nth-child(1) {
+    font-weight: 600;
+    font-size: 0.85rem;
+    flex: 3;
+  }
+  & > div:nth-child(2) {
+    flex: 1;
+  }
+  & > div:nth-child(3) {
+    flex: 1;
+  }
+  & > div:nth-child(4) {
+    flex: 1;
+  }
+  & > div:nth-child(5) {
+    flex: 2;
+    font-weight: 300;
+    font-size: 0.8rem;
+  }
+`
+const DocumentTitleWrapper = styled.div`
+  display: flex;
+  padding: 0.3rem 0 0.5rem;
+  align-items: center;
+  border-bottom: 1px solid #c0c0c0;
+  font-weight: bold;
+  font-size: 0.8rem;
+
+  & > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  & > div:nth-child(1) {
+    flex: 3;
+  }
+  & > div:nth-child(2) {
+    flex: 1;
+  }
+  & > div:nth-child(3) {
+    flex: 1;
+  }
+  & > div:nth-child(4) {
+    flex: 1;
+  }
+  & > div:nth-child(5) {
+    flex: 2;
+  }
+`
+const Tag = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 7px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  width: fit-content;
+  height: 0.1rem;
+  padding: 0.8rem 0.5rem;
+  color: ${(props) => props.color};
+  background-color: ${(props) => props.backgroundColor};
+  cursor: default;
+`
+const FileUploadWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+`
+
+const EditBtns = styled.div`
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+`
+const EditBtn = styled.button`
+  background-color: #f0f0f0;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 100%;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
+`
+const UpBtn = styled(EditBtn)`
+  background-color: #ff8b8b;
+  &:hover {
+    background-color: #ff7b7b;
+  }
+  &:active {
+    background-color: #ff6b6b;
+  }
+`
+const DownBtn = styled(EditBtn)`
+  background-color: #5c5c5c;
+  &:hover {
+    background-color: #4c4c4c;
+  }
+  &:active {
+    background-color: #3c3c3c;
+  }
+`
+
+const documentList = [
+  {
+    fileName: '2025_신입사원_교육자료',
+    fileType: 'PDF',
+    securityLevel: '하',
+    registeredDB: '법률',
+    uploadDate: '2025.05.08 09:55',
+  },
+  {
+    fileName: '2025_규내자료_최종',
+    fileType: 'PDF',
+    securityLevel: '상',
+    registeredDB: '법률',
+    uploadDate: '2025.05.04 19:03',
+  },
+  {
+    fileName: '신입사원_교육자료_보충',
+    fileType: 'TEXT',
+    securityLevel: '중',
+    registeredDB: '공간',
+    uploadDate: '2025.04.26 14:20',
+  },
+  {
+    fileName: '2025_사옥정보',
+    fileType: 'PDF',
+    securityLevel: '상',
+    registeredDB: '공간',
+    uploadDate: '2025.04.26 10:01',
+  },
+  {
+    fileName: '2025_신입사원_교육자료',
+    fileType: 'PDF',
+    securityLevel: '하',
+    registeredDB: '법률',
+    uploadDate: '2025.05.08 09:55',
+  },
+  {
+    fileName: '2025_규내자료_최종',
+    fileType: 'PDF',
+    securityLevel: '상',
+    registeredDB: '법률',
+    uploadDate: '2025.05.04 19:03',
+  },
+  {
+    fileName: '신입사원_교육자료_보충',
+    fileType: 'TEXT',
+    securityLevel: '중',
+    registeredDB: '공간',
+    uploadDate: '2025.04.26 14:20',
+  },
+]
