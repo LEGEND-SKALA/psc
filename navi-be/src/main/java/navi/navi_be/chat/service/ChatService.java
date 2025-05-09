@@ -12,7 +12,7 @@ import navi.navi_be.chat.entity.ChatMessage;
 import navi.navi_be.chat.model.DeviceType;
 import navi.navi_be.chat.model.SenderType;
 import navi.navi_be.chat.repository.ChatMessageRepository;
-import navi.navi_be.common.exception.NotFoundException;
+import navi.navi_be.common.exception.ChatNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -42,8 +42,7 @@ public class ChatService {
     @Transactional
     public void softDeleteMessage(Long id) {
         ChatMessage message = chatMessageRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new NotFoundException("메시지를 찾을 수 없습니다."));
-
+                .orElseThrow(() -> new ChatNotFoundException(id));
         message.softDelete(); // deletedAt 설정
     }
 }

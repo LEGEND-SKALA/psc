@@ -17,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import navi.navi_be.document.model.DocumentCategory;
+import navi.navi_be.document.model.DocumentSecurityLevel;
 import navi.navi_be.document.model.DocumentStatus;
 
 @Entity
@@ -40,6 +41,9 @@ public class Document {
 
     @Enumerated(EnumType.STRING)
     private DocumentStatus status;
+
+    @Enumerated(EnumType.STRING)
+    private DocumentSecurityLevel security;
 
     private LocalDateTime createdAt;
 

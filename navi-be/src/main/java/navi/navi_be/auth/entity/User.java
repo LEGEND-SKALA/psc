@@ -35,7 +35,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private UserRole role;
+    private UserRole role; 
 
     public User(SignupRequest request) {
         this.name = request.getName();
@@ -44,5 +44,9 @@ public class User {
         this.email = request.getEmail();
         this.password = request.getPassword();
         this.role = UserRole.valueOf(request.getRole());
+    }
+
+    public void setRole(UserRole roleEnum) {
+        this.role = roleEnum;
     }
 }

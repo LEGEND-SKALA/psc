@@ -15,12 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import navi.navi_be.common.response.ApiResponse;
 import navi.navi_be.document.dto.DocumentResponse;
 import navi.navi_be.document.dto.DocumentUploadRequest;
 import navi.navi_be.document.model.DocumentCategory;
+import navi.navi_be.document.model.DocumentSecurityLevel;
 import navi.navi_be.document.service.DocumentService;
 
+@Slf4j
 @RestController
 @RequestMapping("/documents")
 @RequiredArgsConstructor
@@ -33,10 +36,11 @@ public class DocumentController {
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> uploadDocument(
         @RequestPart("file") MultipartFile file,
-        @RequestPart("title") String title,
-        @RequestPart("category") String category
+        @RequestPart("category") String category,
+        @RequestPart("security") String security
     ) {
         DocumentCategory enumCategory;
+        DocumentSecurityLevel enumSecurityLevel;
 
         try {
             enumCategory = DocumentCategory.valueOf(category.toUpperCase());
@@ -44,12 +48,18 @@ public class DocumentController {
             return ResponseEntity.badRequest()
                 .body(new ApiResponse<>(1001, "유효하지 않은 카테고리입니다.", null));
         }
+        try {
+            enumSecurityLevel = DocumentSecurityLevel.valueOf(security.toUpperCase());
+        }   catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                .body(new ApiResponse<>(1001, "유효하지 않은 보안등급입니다.", null));
+        }
 
-        DocumentUploadRequest request = new DocumentUploadRequest(file, title, enumCategory);
+        DocumentUploadRequest request = new DocumentUploadRequest(file, enumCategory, enumSecurityLevel);
         documentService.uploadDocument(request);
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(new ApiResponse<>(0, "문서 업로드에 성공했습니다.", null));
-}
+        }
 
     // 문서 목록 조회
     @PreAuthorize("hasRole('ADMIN')")

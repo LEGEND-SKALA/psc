@@ -11,12 +11,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import navi.navi_be.document.dto.DocumentResponse;
 import navi.navi_be.document.dto.DocumentUploadRequest;
 import navi.navi_be.document.entity.Document;
 import navi.navi_be.document.model.DocumentStatus;
 import navi.navi_be.document.repository.DocumentRepository;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocumentService {
@@ -30,19 +32,20 @@ public class DocumentService {
     public void uploadDocument(DocumentUploadRequest request) {
         MultipartFile file = request.getFile();
         String fileName = generateUniqueFileName(file.getOriginalFilename());
+        log.info(file.getOriginalFilename());
 
         File dest = new File(uploadDir, fileName);
         try {
             dest.getParentFile().mkdirs(); // 디렉토리 없으면 생성
             file.transferTo(dest);
         } catch (IOException e) {
-            e.printStackTrace();
             throw new RuntimeException("파일 저장에 실패했습니다.", e);
         }
 
         Document document = Document.builder()
-                .title(request.getTitle())
+                .title(file.getOriginalFilename())
                 .category(request.getCategory())
+                .security(request.getSecurityLevel())
                 .filePath(dest.getAbsolutePath())
                 .status(DocumentStatus.ACTIVE)
                 .build();
