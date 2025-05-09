@@ -1,85 +1,80 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+import shutil
+import os
+from pathlib import Path
+
+from utils.vectordb.document import add_document, delete_document
 from agents.router_agent import route
-from utils.vectordb.document import add_document, list_documents, delete_document
-from typing import List
 
-app = FastAPI(
-    title="AI Engine API",
-    description="VectorDB + Agent + 문서 관리 API",
-    version="1.0.0",
-)
+app = FastAPI()
 
-# CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 배포시에는 특정 도메인만 허용하는 것이 좋습니다.
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# -------------------------
-# 모델 정의
-# -------------------------
-
-class Query(BaseModel):
-    user_input: str
-
-class DocumentAddRequest(BaseModel):
-    target: str  # regulation 또는 space
-    file_path: str
-    security_level: str = "중"
-
-class DocumentDeleteRequest(BaseModel):
-    target: str
-    doc_source_name: str
-
-# -------------------------
-# 기본 API
-# -------------------------
-
-@app.get("/")
-def read_root():
-    return {"message": "AI Engine is running"}
-
-# -------------------------
-# Chat API
-# -------------------------
-
-@app.post("/chat")
-def chat(query: Query):
-    """
-    사용자 질문 → 적절한 Agent → 답변 반환
-    """
-    response = route(query.user_input)
-    return {"response": response}
-
-# -------------------------
-# 문서 관리 API
-# -------------------------
+RAW_DATA_DIR = "./data/raw"
 
 @app.post("/document/add")
-def add_document_api(req: DocumentAddRequest):
-    """
-    문서 추가 → VectorDB에 저장
-    """
-    add_document(req.file_path, req.target, req.security_level)
-    return {"status": "Document added successfully"}
+async def upload_document(
+    file: UploadFile = File(...),
+    category: str = Form(...),  # regulation or space
+    security_level: str = Form("중")
+):
+    save_dir = os.path.join(RAW_DATA_DIR, category)
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, file.filename)
 
-@app.get("/document/list")
-def list_documents_api(target: str):
-    """
-    VectorDB 내 문서 리스트 조회
-    """
-    docs = list_documents(target)
-    return {"documents": docs}
+    # ✅ 중복 방지
+    if os.path.exists(save_path):
+        return {
+            "message": f"❗ 이미 같은 이름의 파일({file.filename})이 존재합니다. 다른 이름으로 저장해주세요.",
+            "success": False
+        }
 
-@app.delete("/document/delete")
-def delete_document_api(req: DocumentDeleteRequest):
-    """
-    VectorDB 내 문서 삭제
-    """
-    delete_document(req.target, req.doc_source_name)
-    return {"status": "Document deleted successfully"}
+    # 저장
+    with open(save_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    print(f"📥 벡터DB에 문서 추가 시도: {save_path}, category: {category}")
+
+    # VectorDB에 추가
+    add_document(save_path, category, security_level)
+
+    return {
+        "message": f"{file.filename} 업로드 및 벡터DB 등록 완료",
+        "category": category,
+        "success": True
+    }
+
+@app.post("/document/delete")
+async def remove_document(
+    doc_name: str = Form(...),
+    category: str = Form(...)
+):
+    file_path = os.path.join(RAW_DATA_DIR, category, doc_name)
+    file_deleted = False
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        file_deleted = True
+
+    print(f"🗑 VectorDB에서 {doc_name} 제거 시도")
+    delete_document(category, doc_name)
+
+    return {
+        "message": f"{doc_name} 삭제 완료",
+        "file_deleted": file_deleted,
+        "category": category
+    }
+
+@app.post("/chat")
+async def chat(user_input: str = Form(...)):
+    response = route(user_input)
+    return {
+        "user_input": user_input,
+        "response": response
+    }
