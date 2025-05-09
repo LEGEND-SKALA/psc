@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import styled from 'styled-components'
-import { FaQuestion } from 'react-icons/fa'
-import { IoMicSharp, IoSend } from 'react-icons/io5'
 import { WorkspaceImg, BuildingImg, BalanceImg } from '../../assets/main'
+import { ChatInput } from '../chat'
 
 const Main = () => {
   useEffect(() => {
@@ -21,23 +20,7 @@ const Main = () => {
         <MainGreeting>무엇을 도와드릴까요?</MainGreeting>
       </GreetingSection>
 
-      <InputSection onClick={() => document.querySelector('input').focus()}>
-        <H2>질문하기</H2>
-        <Input type="text" placeholder="무엇이든 물어보세요" />
-        <Btns>
-          <QuestionBtn>
-            <FaQuestion color="#fff" size={15} />
-          </QuestionBtn>
-          <RightBtns>
-            <VoiceBtn>
-              <IoMicSharp color="#5c5c5c" size={25} />
-            </VoiceBtn>
-            <SubmitBtn type="submit">
-              <IoSend color="#fff" size={14} />
-            </SubmitBtn>
-          </RightBtns>
-        </Btns>
-      </InputSection>
+      <ChatInput />
 
       <ExampleSection>
         <H2>예시 대화</H2>
@@ -124,51 +107,6 @@ const MainGreeting = styled.p`
   font-weight: 700;
   margin: 0.7rem 0 2rem;
 `
-const InputSection = styled.section`
-  background-color: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-  border-radius: 25px;
-  width: 60vw;
-  max-width: 38rem;
-  padding: 1.5rem 1.5rem 1rem;
-  box-sizing: border-box;
-`
-const Input = styled.input`
-  margin-bottom: 1rem;
-  border: none;
-  width: 100%;
-  font-size: 0.9rem;
-  height: 1.1rem;
-
-  &:focus {
-    outline: none;
-  }
-`
-const Btns = styled.div`
-  display: flex;
-`
-const RightBtns = styled.div`
-  margin-left: auto;
-  display: flex;
-`
-const Button = styled.button`
-  border: none;
-  border-radius: 100%;
-  width: 2rem;
-  height: 2rem;
-  background-color: #5c5c5c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-`
-const QuestionBtn = styled(Button)``
-const VoiceBtn = styled(Button)`
-  margin-right: 1rem;
-  background-color: #fff;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
-`
-const SubmitBtn = styled(Button)``
 const ExampleSection = styled.section`
   width: 60vw;
   max-width: 38rem;
