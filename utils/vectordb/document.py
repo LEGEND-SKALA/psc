@@ -43,7 +43,6 @@ def add_document(pdf_path: str, target: str, security_level: str = "중"):
     vectordb.save_local(vectordb_dir)
     print(f"✅ 문서 추가 및 저장 완료: {vectordb_dir}")
 
-
 def list_documents(target: str):
     vectordb_dir = VECTORDB_DIRS[target]
     vectordb = LangChainFAISS.load_local(vectordb_dir, embed_text, allow_dangerous_deserialization=True)

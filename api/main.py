@@ -1,80 +1,66 @@
-from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.responses import JSONResponse
+from pathlib import Path
 import shutil
 import os
-from pathlib import Path
 
 from utils.vectordb.document import add_document, delete_document
+from config import DATA_DIRS
 from agents.router_agent import route
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-RAW_DATA_DIR = "./data/raw"
+@app.post("/documents/{category}")
+async def upload_pdf(category: str, file: UploadFile = File(...)):
+    """
+    PDF 파일 업로드 및 VectorDB에 추가
+    """
+    if category not in DATA_DIRS:
+        raise HTTPException(status_code=400, detail="Invalid category")
 
-@app.post("/document/add")
-async def upload_document(
-    file: UploadFile = File(...),
-    category: str = Form(...),  # regulation or space
-    security_level: str = Form("중")
-):
-    save_dir = os.path.join(RAW_DATA_DIR, category)
-    os.makedirs(save_dir, exist_ok=True)
-    save_path = os.path.join(save_dir, file.filename)
+    save_dir = Path(DATA_DIRS[category]["raw"])
+    save_dir.mkdir(parents=True, exist_ok=True)
+    save_path = save_dir / file.filename
 
-    # ✅ 중복 방지
-    if os.path.exists(save_path):
-        return {
-            "message": f"❗ 이미 같은 이름의 파일({file.filename})이 존재합니다. 다른 이름으로 저장해주세요.",
-            "success": False
-        }
-
-    # 저장
-    with open(save_path, "wb") as buffer:
+    with save_path.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    print(f"📥 벡터DB에 문서 추가 시도: {save_path}, category: {category}")
+    try:
+        add_document(str(save_path), category)
+        return JSONResponse(content={"message": f"✅ {file.filename} 업로드 및 추가 완료"}, status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    # VectorDB에 추가
-    add_document(save_path, category, security_level)
 
-    return {
-        "message": f"{file.filename} 업로드 및 벡터DB 등록 완료",
-        "category": category,
-        "success": True
-    }
+@app.delete("/documents/{category}/{filename}")
+async def delete_pdf(category: str, filename: str):
+    """
+    PDF 파일 삭제 및 VectorDB에서 제거
+    """
+    if category not in DATA_DIRS:
+        raise HTTPException(status_code=400, detail="Invalid category")
 
-@app.post("/document/delete")
-async def remove_document(
-    doc_name: str = Form(...),
-    category: str = Form(...)
-):
-    file_path = os.path.join(RAW_DATA_DIR, category, doc_name)
-    file_deleted = False
-    if os.path.exists(file_path):
+    file_path = Path(DATA_DIRS[category]["raw"]) / filename
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="파일이 존재하지 않습니다")
+
+    try:
         os.remove(file_path)
-        file_deleted = True
+        delete_document(category, filename)
+        return JSONResponse(content={"message": f"🗑️ {filename} 삭제 완료"}, status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-    print(f"🗑 VectorDB에서 {doc_name} 제거 시도")
-    delete_document(category, doc_name)
-
-    return {
-        "message": f"{doc_name} 삭제 완료",
-        "file_deleted": file_deleted,
-        "category": category
-    }
 
 @app.post("/chat")
-async def chat(user_input: str = Form(...)):
-    response = route(user_input)
-    return {
-        "user_input": user_input,
-        "response": response
-    }
+async def chat_with_bot(user_input: str):
+    """
+    챗봇 질의 응답 API
+    """
+    try:
+        response = route(user_input)
+        return JSONResponse(content={"response": response}, status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
