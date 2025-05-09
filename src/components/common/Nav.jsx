@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { NaviLogo } from '../../assets/common'
-import { ImExit } from 'react-icons/im'
+import { FaPowerOff } from 'react-icons/fa'
 
 const Nav = ({ modalOpen }) => {
   const navigate = useNavigate()
@@ -21,7 +21,7 @@ const Nav = ({ modalOpen }) => {
       <NavItems>
         <UserName>스칼라 님</UserName>
         <ExitBtn onClick={() => navigate('/login')}>
-          <ImExit size={30} color="#FF8B8B" />
+          <FaPowerOff size={30} color="#FF8B8B" />
         </ExitBtn>
       </NavItems>
     </NavSection>
