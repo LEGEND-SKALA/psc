@@ -1,11 +1,22 @@
-import { ChatInput } from '../components/chat'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ChatInput, ReviewModal } from '../components/chat'
 import { Nav } from '../components/common'
 import styled from 'styled-components'
 
 const ChatPage = () => {
+  const navigate = useNavigate()
+  const [isOpen, setIsOpen] = useState(false)
+  const handleOpen = () => {
+    setIsOpen(true)
+  }
+  const handleClose = () => {
+    setIsOpen(false)
+    navigate('/')
+  }
   return (
     <ChatPageContainer>
-      <Nav />
+      <Nav modalOpen={handleOpen} />
 
       <ChatContainer>
         <ChatContent>
@@ -25,6 +36,8 @@ const ChatPage = () => {
         <AlertComment>
           Navi는 실수를 할 수 있습니다. 중요한 정보는 재차 확인하세요.
         </AlertComment>
+
+        <ReviewModal isOpen={isOpen} setIsOpen={handleClose} />
       </ChatContainer>
     </ChatPageContainer>
   )

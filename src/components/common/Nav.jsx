@@ -3,11 +3,19 @@ import styled from 'styled-components'
 import { NaviLogo } from '../../assets/common'
 import { ImExit } from 'react-icons/im'
 
-const Nav = () => {
+const Nav = ({ modalOpen }) => {
   const navigate = useNavigate()
+
+  const handleClickHomeBtn = () => {
+    if (modalOpen) {
+      modalOpen()
+      console.log('handleOpen')
+    } else navigate('/')
+  }
+
   return (
     <NavSection>
-      <HomeBtn>
+      <HomeBtn onClick={handleClickHomeBtn}>
         <NaviLogo />
       </HomeBtn>
       <NavItems>
