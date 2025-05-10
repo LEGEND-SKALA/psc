@@ -19,7 +19,7 @@ COPY . .
 RUN ./gradlew build -x test --no-daemon --stacktrace
 
 # 2단계: 실행용 이미지
-FROM openjdk:17-jdk-slim
+FROM openjdk:21-jdk-slim
 WORKDIR /app
 
 COPY --from=builder /app/build/libs/*.jar app.jar
