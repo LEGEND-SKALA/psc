@@ -277,6 +277,8 @@ const Wrapper = styled.div`
   background-color: #fff;
   border-radius: 15px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+  max-height: 35vh;
+  min-width: 0;
 `
 const Container = styled.div`
   display: flex;
@@ -304,6 +306,7 @@ const RightContent = styled.div`
   flex-direction: column;
   gap: 1rem;
   min-height: 0;
+  min-width: 0;
 `
 
 const BoldText = styled.p`
@@ -336,7 +339,7 @@ const DocumentItemWrapper = styled.div`
   padding: 0.7rem 0;
   align-items: center;
 
-  border-bottom: 1px solid #f7f7f7;
+  border-bottom: 1px solid #eeeeee;
 
   & > div {
     overflow: hidden;
