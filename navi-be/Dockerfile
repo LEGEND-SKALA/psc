@@ -7,6 +7,7 @@ COPY build.gradle settings.gradle ./
 COPY gradle ./gradle
 COPY gradlew gradlew
 COPY gradlew.bat gradlew.bat
+RUN chmod +x gradlew
 
 # 의존성 캐싱용 빈 빌드
 RUN ./gradlew build -x test --no-daemon || true
