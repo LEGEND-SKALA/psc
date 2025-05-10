@@ -1,12 +1,41 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChatInput, ReviewModal } from '../components/chat'
 import { Nav } from '../components/common'
 import styled from 'styled-components'
+import axios from 'axios'
 
 const ChatPage = () => {
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
+  const [messages, setMessages] = useState([])
+
+  useEffect(() => {
+    const token = localStorage.getItem('NaviToken')
+    if (!token) {
+      alert('로그인이 필요합니다.')
+      navigate('/login')
+    } else {
+      fetchMessages()
+    }
+  }, [])
+
+  const fetchMessages = () => {
+    axios
+      .get(`${process.env.REACT_APP_SERVER_URL}/chat/messages`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('NaviToken')}`,
+        },
+      })
+      .then((response) => {
+        console.log('메시지 가져오기 성공:', response.data.body)
+        setMessages(response.data.body)
+      })
+      .catch((error) => {
+        console.error('메시지 가져오기 오류:', error)
+      })
+  }
+
   const handleOpen = () => {
     setIsOpen(true)
   }
@@ -21,17 +50,17 @@ const ChatPage = () => {
       <ChatContainer>
         <ChatContent>
           <ChatDate>2025년 5월 8일 목요일</ChatDate>
-          {chatList.map((item) => (
+          {messages.map((item) => (
             <ChatItem
               key={item.id}
-              content={item.content}
-              role={item.role}
-              date={item.date}
+              content={item.message}
+              role={item.sender}
+              date={item.createdAt}
             />
           ))}
         </ChatContent>
 
-        <ChatInput />
+        <ChatInput setMessages={setMessages} />
 
         <AlertComment>
           Navi는 실수를 할 수 있습니다. 중요한 정보는 재차 확인하세요.
@@ -142,8 +171,8 @@ const ChatItemContainer = styled.div`
   padding: 0.8rem 1rem;
   margin: 0.5rem 1.25rem !important;
   margin-left: ${(props) =>
-    props.$role === 'user' ? 'auto' : '1.25rem'} !important;
-  background-color: ${(props) => (props.$role === 'user' ? '#F7F7F7' : '#fff')};
+    props.$role === 'USER' ? 'auto' : '1.25rem'} !important;
+  background-color: ${(props) => (props.$role === 'USER' ? '#F7F7F7' : '#fff')};
   border-radius: 25px;
   box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.25);
 `
