@@ -9,12 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
-import navi.navi_be.auth.entity.User;
-import navi.navi_be.auth.util.CurrentUser;
 import navi.navi_be.chatreview.dto.ChatReviewRequest;
 import navi.navi_be.chatreview.dto.ChatReviewResponse;
 import navi.navi_be.chatreview.service.ChatReviewService;
@@ -32,10 +31,10 @@ public class ChatReviewController {
      */
     @PostMapping
     public ResponseEntity<String> createReview(
-            @CurrentUser User user,  // 직접 구현한 로그인 사용자 주입 방식
+            @RequestHeader("Authorization") String authorizationHeader,
             @Validated @RequestBody ChatReviewRequest request) {
 
-        chatReviewService.createReview(user, request);
+        chatReviewService.createReview(authorizationHeader, request);
         return ResponseEntity.ok("리뷰가 성공적으로 등록되었습니다.");
     }
 

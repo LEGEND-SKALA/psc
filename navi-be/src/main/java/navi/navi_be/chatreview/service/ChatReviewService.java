@@ -8,12 +8,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 import navi.navi_be.auth.entity.User;
+import navi.navi_be.auth.repository.UserRepository;
 import navi.navi_be.chat.entity.ChatMessage;
 import navi.navi_be.chat.repository.ChatMessageRepository;
 import navi.navi_be.chatreview.dto.ChatReviewRequest;
 import navi.navi_be.chatreview.dto.ChatReviewResponse;
 import navi.navi_be.chatreview.entity.ChatReview;
 import navi.navi_be.chatreview.repository.ChatReviewRepository;
+import navi.navi_be.common.util.JwtUtil;
 
 @Service
 @RequiredArgsConstructor
@@ -21,15 +23,29 @@ public class ChatReviewService {
 
     private final ChatReviewRepository chatReviewRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     /**
      * 리뷰 저장
      */
     @Transactional
-    public void createReview(User user, ChatReviewRequest request) {
+    public void createReview(String authorizationHeader, ChatReviewRequest request) {
+        // 1. 토큰 추출
+        String token = authorizationHeader.replace("Bearer ", "").trim();
+
+        // 2. JWT에서 employeeId 추출
+        String employeeId = jwtUtil.extractEmployeeId(token);
+
+        // 3. DB에서 사용자 조회
+        User user = userRepository.findByEmployeeId(employeeId)
+            .orElseThrow(() -> new IllegalArgumentException("로그인된 사용자를 찾을 수 없습니다."));
+
+        // 4. 채팅 메시지 조회
         ChatMessage message = chatMessageRepository.findById(request.getMessageId())
             .orElseThrow(() -> new IllegalArgumentException("해당 메시지를 찾을 수 없습니다."));
 
+        // 5. 리뷰 저장
         ChatReview review = ChatReview.builder()
             .user(user)
             .message(message)
