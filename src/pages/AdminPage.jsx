@@ -1,13 +1,90 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Nav } from '../components/common'
 import styled from 'styled-components'
 import { MainDashboard, MainDocument, MainUser } from '../components/admin'
 import { SubDashboard, SubDocument, SubUser } from '../components/admin'
 import { IoSearch } from 'react-icons/io5'
+import axios from 'axios'
 
 const AdminPage = () => {
   // type: document, user, dashboard
   const [type, setType] = useState('document')
+
+  const [userList, setUserList] = useState([])
+
+  useEffect(() => {
+    fetchUserList()
+  }, [])
+
+  const fetchUserList = () => {
+    axios
+      .get(`${process.env.REACT_APP_SERVER_URL}/admin/users`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('NaviToken')}`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data)
+        if (response.data.code === 200) {
+          setUserList(response.data.body)
+        } else {
+          alert('사용자 목록을 가져오는 데 실패했습니다.')
+        }
+      })
+      .catch((error) => {
+        console.error('사용자 목록 가져오기 오류:', error)
+        alert('사용자 목록을 가져오는 중 오류가 발생했습니다.')
+      })
+  }
+
+  const handleUploadRole = (userId, role) => {
+    // role: KIOSK, USER, ADMIN
+    axios
+      .patch(
+        `${process.env.REACT_APP_SERVER_URL}/admin/users/${userId}`,
+        { role: 'KIOSK' },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('NaviToken')}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log(response.data)
+        if (response.data.code === 200) {
+          alert('롤 업로드 성공')
+          fetchUserList()
+        } else {
+          alert('롤 업로드 실패')
+        }
+      })
+      .catch((error) => {
+        console.error('롤 업로드 오류:', error)
+        alert('롤 업로드 중 오류가 발생했습니다.')
+      })
+  }
+
+  const handleDeleteUser = (userId) => {
+    axios
+      .delete(`${process.env.REACT_APP_SERVER_URL}/admin/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('NaviToken')}`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data)
+        if (response.data.code === 200) {
+          alert('사용자 삭제 성공')
+          fetchUserList()
+        } else {
+          alert('사용자 삭제 실패')
+        }
+      })
+      .catch((error) => {
+        console.error('사용자 삭제 오류:', error)
+        alert('사용자 삭제 중 오류가 발생했습니다.')
+      })
+  }
 
   return (
     <AdminPageContainer>
