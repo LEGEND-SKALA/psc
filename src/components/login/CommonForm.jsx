@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import styled from 'styled-components'
 import { NaviLogo } from '../../assets/common'
@@ -8,6 +10,119 @@ import { FaCircleUser } from 'react-icons/fa6'
 
 const CommonForm = ({ pageType }) => {
   const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [name, setName] = useState('')
+  const [employeeId, setEmployeeId] = useState('')
+  const [department, setDepartment] = useState('')
+
+  const handleSignUp = () => {
+    // department("HR", "IR", "CS", "Sales1", "Sales2", "QA"), role (USER)
+    axios
+      .post(`${process.env.REACT_APP_SERVER_URL}/auth/signup`, {
+        name,
+        employeeId,
+        department,
+        email,
+        password,
+        role: 'USER',
+      })
+      .then((response) => {
+        console.log(response.data)
+        if (response.data.code == 0) {
+          alert('회원가입이 완료되었습니다.')
+
+          setEmployeeId('')
+          setPassword('')
+          navigate('/login')
+        } else {
+          alert('회원가입에 실패했습니다. 다시 시도해주세요.')
+        }
+      })
+      .catch((error) => {
+        console.error('회원가입 오류:', error)
+        alert('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.')
+      })
+  }
+  const handleLogin = () => {
+    axios
+      .post(`${process.env.REACT_APP_SERVER_URL}/auth/login`, {
+        employeeId,
+        password,
+      })
+      .then((response) => {
+        console.log(response.data)
+        if (response.data.code == 0) {
+          alert('로그인 성공')
+          localStorage.setItem('NaviToken', response.data.body.accessToken)
+          navigate('/')
+        } else {
+          alert('로그인 실패. 아이디와 비밀번호를 확인해주세요.')
+        }
+      })
+      .catch((error) => {
+        console.error('로그인 오류:', error)
+        alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.')
+      })
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (pageType === 'login') {
+      handleLogin()
+    } else {
+      handleSignUp()
+    }
+  }
+
+  // login input 정보
+  const loginInput = [
+    {
+      type: 'text',
+      placeholder: '사번을 입력하세요',
+      icon: <IoMdPricetag size={30} color="#5C5C5C" />,
+      onChange: (e) => setEmployeeId(e.target.value),
+    },
+    {
+      type: 'password',
+      placeholder: '비밀번호를 입력하세요',
+      icon: <BiSolidLock size={30} color="#5C5C5C" />,
+      onChange: (e) => setPassword(e.target.value),
+    },
+  ]
+  // signup input 정보
+  const signupInput = [
+    {
+      type: 'text',
+      placeholder: '성명을 입력하세요',
+      icon: <FaCircleUser size={30} color="#5C5C5C" />,
+      onChange: (e) => setName(e.target.value),
+    },
+    {
+      type: 'text',
+      placeholder: '사번을 입력하세요',
+      icon: <IoMdPricetag size={30} color="#5C5C5C" />,
+      onChange: (e) => setEmployeeId(e.target.value),
+    },
+    {
+      type: 'text',
+      placeholder: '부서를 선택하세요',
+      icon: <BiSolidBriefcase size={30} color="#5C5C5C" />,
+      onChange: (e) => setDepartment(e.target.value),
+    },
+    {
+      type: 'email',
+      placeholder: '이메일을 입력하세요',
+      icon: <HiMail size={30} color="#5C5C5C" />,
+      onChange: (e) => setEmail(e.target.value),
+    },
+    {
+      type: 'password',
+      placeholder: '비밀번호를 입력하세요',
+      icon: <BiSolidLock size={30} color="#5C5C5C" />,
+      onChange: (e) => setPassword(e.target.value),
+    },
+  ]
 
   return (
     <FormWrapper>
@@ -28,6 +143,7 @@ const CommonForm = ({ pageType }) => {
                 type={input.type}
                 placeholder={input.placeholder}
                 icon={input.icon}
+                onChange={input.onChange}
               />
             ))
           : signupInput.map((input, index) => (
@@ -36,12 +152,10 @@ const CommonForm = ({ pageType }) => {
                 type={input.type}
                 placeholder={input.placeholder}
                 icon={input.icon}
+                onChange={input.onChange}
               />
             ))}
-        <Button
-          type="submit"
-          onClick={() => navigate(pageType == 'login' ? '/' : '/login')}
-        >
+        <Button type="submit" onClick={handleSubmit}>
           {pageType == 'login' ? '로그인' : '회원가입'}
         </Button>
       </Form>
@@ -64,56 +178,19 @@ const CommonForm = ({ pageType }) => {
 }
 export default CommonForm
 
-const InputContainer = ({ type, placeholder, icon }) => {
+const InputContainer = ({ type, placeholder, icon, onChange }) => {
   return (
     <InputWrapper>
       {icon}
-      <Input required type={type} placeholder={placeholder} />
+      <Input
+        required
+        type={type}
+        placeholder={placeholder}
+        onChange={onChange}
+      />
     </InputWrapper>
   )
 }
-
-// login input 정보
-const loginInput = [
-  {
-    type: 'text',
-    placeholder: '사번을 입력하세요',
-    icon: <IoMdPricetag size={30} color="#5C5C5C" />,
-  },
-  {
-    type: 'password',
-    placeholder: '비밀번호를 입력하세요',
-    icon: <BiSolidLock size={30} color="#5C5C5C" />,
-  },
-]
-// signup input 정보
-const signupInput = [
-  {
-    type: 'text',
-    placeholder: '성명을 입력하세요',
-    icon: <FaCircleUser size={30} color="#5C5C5C" />,
-  },
-  {
-    type: 'text',
-    placeholder: '사번을 입력하세요',
-    icon: <IoMdPricetag size={30} color="#5C5C5C" />,
-  },
-  {
-    type: 'text',
-    placeholder: '부서를 선택하세요',
-    icon: <BiSolidBriefcase size={30} color="#5C5C5C" />,
-  },
-  {
-    type: 'email',
-    placeholder: '이메일을 입력하세요',
-    icon: <HiMail size={30} color="#5C5C5C" />,
-  },
-  {
-    type: 'password',
-    placeholder: '비밀번호를 입력하세요',
-    icon: <BiSolidLock size={30} color="#5C5C5C" />,
-  },
-]
 
 const FormWrapper = styled.div`
   display: flex;
