@@ -11,6 +11,7 @@ import navi.navi_be.auth.entity.User;
 import navi.navi_be.auth.model.UserRole;
 import navi.navi_be.auth.repository.UserRepository;
 import navi.navi_be.chat.repository.ChatMessageRepository;
+import navi.navi_be.chatreview.repository.ChatReviewRepository;
 import navi.navi_be.common.exception.UserNotFoundException;
 import navi.navi_be.useradmin.dto.UserListResponse;
 
@@ -19,19 +20,25 @@ import navi.navi_be.useradmin.dto.UserListResponse;
 public class AdminUserService {
     private final UserRepository userRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final ChatReviewRepository chatReviewRepository;
 
     public List<UserListResponse> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(user -> new UserListResponse(
-                        user.getId(),                
-                        user.getEmployeeId(),        
-                        user.getName(),              
-                        user.getEmail(),                 
-                        user.getDepartment().name(),
-                        user.getRole().name()
-                ))
+                .map(user -> {
+                    Double avgRating = chatReviewRepository.findAverageRatingByUserId(user.getId());
+                    return new UserListResponse(
+                            user.getId(),
+                            user.getEmployeeId(),
+                            user.getName(),
+                            user.getEmail(),
+                            user.getDepartment().name(),
+                            user.getRole().name(),
+                            avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0 // 소수점 1자리 반올림
+                    );
+                })
                 .collect(Collectors.toList());
     }
+    
 
     public void updateUserRole(Long userId, String role) {
         User user = userRepository.findById(userId)

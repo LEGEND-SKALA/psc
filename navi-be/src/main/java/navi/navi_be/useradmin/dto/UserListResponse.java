@@ -12,4 +12,5 @@ public class UserListResponse {
     private final String email;
     private final String department;
     private final String role;
+    private final Double averageRating;
 }
