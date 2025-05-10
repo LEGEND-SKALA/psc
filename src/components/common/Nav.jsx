@@ -13,6 +13,12 @@ const Nav = ({ modalOpen }) => {
     } else navigate('/')
   }
 
+  const handleLogoutBtn = () => {
+    localStorage.removeItem('NaviToken')
+    alert('로그아웃 되었습니다.')
+    navigate('/login')
+  }
+
   return (
     <NavSection>
       <HomeBtn onClick={handleClickHomeBtn}>
@@ -20,7 +26,8 @@ const Nav = ({ modalOpen }) => {
       </HomeBtn>
       <NavItems>
         <UserName>스칼라 님</UserName>
-        <ExitBtn onClick={() => navigate('/login')}>
+
+        <ExitBtn onClick={handleLogoutBtn}>
           <FaPowerOff size={30} color="#FF8B8B" />
         </ExitBtn>
       </NavItems>
