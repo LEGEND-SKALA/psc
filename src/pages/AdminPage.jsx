@@ -25,11 +25,12 @@ const AdminPage = () => {
       })
       .then((response) => {
         console.log(response.data)
-        if (response.data.code === 200) {
-          setUserList(response.data.body)
-        } else {
-          alert('사용자 목록을 가져오는 데 실패했습니다.')
-        }
+        setUserList(response.data.body)
+        // if (response.data.code === 200) {
+        //   setUserList(response.data.body)
+        // } else {
+        //   alert('사용자 목록을 가져오는 데 실패했습니다.')
+        // }
       })
       .catch((error) => {
         console.error('사용자 목록 가져오기 오류:', error)
@@ -183,14 +184,17 @@ const Menu = styled.div`
   width: 17rem;
   padding: 1rem 1.5rem 1rem;
   border-radius: 25px;
-  text-align: center;
+  // text-align: center;
   flex: 1;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 
   @media (max-width: 900px) {
     flex: 1;
-    width: auto;
+    width: 100%;
     height: 12rem;
   }
 `
@@ -199,13 +203,13 @@ const MenuTop = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  min-height: 0;
 `
 const MenuTitle = styled.h2`
   font-size: 1.3rem;
   font-weight: bold;
   padding-top: 0.5rem;
   margin: 0;
-  margin-bottom: 1rem;
 `
 const ChangeTypeBtn = styled.button`
   background-color: #ff8b8b;
@@ -232,6 +236,7 @@ const Main = styled.div`
   border-radius: 25px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   padding: 0.6rem 1.5rem 1rem;
+  min-width: 0;
 
   @media (max-width: 900px) {
     margin-left: 0;
