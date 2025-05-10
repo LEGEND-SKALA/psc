@@ -1,5 +1,5 @@
 # 1단계: 빌드 이미지
-FROM gradle:8.5.0-jdk17 AS builder
+FROM gradle:8.5.0-jdk21 AS builder
 WORKDIR /app
 
 # 필요한 파일만 복사 (gradle.properties 생략)
