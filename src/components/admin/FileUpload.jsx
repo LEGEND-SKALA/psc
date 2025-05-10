@@ -1,11 +1,47 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import { FolderIcon } from '../../assets/common'
+import axios from 'axios'
 
 const FileUploader = () => {
   const fileInputRef = useRef(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [uploadedFile, setUploadedFile] = useState([])
+  const [uploadedFile, setUploadedFile] = useState(null)
+
+  useEffect(() => {
+    if (uploadedFile) {
+      handleUploadFile()
+    }
+  }, [uploadedFile])
+
+  const handleUploadFile = () => {
+    if (!uploadedFile) return
+
+    const formData = new FormData()
+    formData.append('file', uploadedFile)
+    formData.append('category', 'SPACE')
+    formData.append('security', 'MEDIUM')
+
+    axios
+      .post(`${process.env.REACT_APP_SERVER_URL}/documents`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('NaviToken')}`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data)
+        if (response.data.code === 0) {
+          alert('파일 업로드 성공')
+        } else {
+          alert('파일 업로드 실패')
+        }
+      })
+      .catch((error) => {
+        console.error('파일 업로드 오류:', error)
+        alert('파일 업로드 중 오류가 발생했습니다.')
+      })
+  }
 
   const handleDrop = (e) => {
     e.preventDefault()
@@ -70,6 +106,7 @@ const DropArea = styled.div`
   min-height: 0;
   width: 100%;
   align-content: center;
+  overflow: auto;
 `
 const UploadButton = styled.button`
   margin-top: 1rem;
