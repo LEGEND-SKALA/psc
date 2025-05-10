@@ -3,7 +3,6 @@ import { AdminPage, ChatPage, LoginPage, MainPage } from './pages'
 import './App.css'
 
 function App() {
-  console.log('Navi')
   return (
     <Router>
       <Routes>
