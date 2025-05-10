@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import vectordb
+from services.init_vectordb import initialize_vectordb
 
 app = FastAPI(
     title="SK C&C Onboarding RAG API",
@@ -8,14 +9,18 @@ app = FastAPI(
     version="1.0"
 )
 
-# CORS 허용 (SpringBoot 연동 시 필요)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 실제 운영시 도메인 지정
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 라우터 등록
 app.include_router(vectordb.router)
+
+# ✅ 서버 시작 시 VectorDB 초기화
+@app.on_event("startup")
+def on_startup():
+    print("🚀 서버 시작됨 - VectorDB 초기화 수행")
+    initialize_vectordb()
