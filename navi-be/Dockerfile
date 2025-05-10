@@ -16,7 +16,7 @@ RUN ./gradlew build -x test --no-daemon || true
 COPY . .
 
 # 실제 빌드
-RUN ./gradlew build -x test --no-daemon
+RUN ./gradlew build -x test --no-daemon --stacktrace
 
 # 2단계: 실행용 이미지
 FROM openjdk:17-jdk-slim
