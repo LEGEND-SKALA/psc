@@ -3,7 +3,7 @@ FROM gradle:8.5.0-jdk17 AS builder
 WORKDIR /app
 
 # 캐시를 활용하기 위해 의존성 먼저 복사
-COPY build.gradle.kts settings.gradle.kts gradle.properties ./
+COPY build.gradle.kts settings.gradle gradle.properties ./
 COPY gradle ./gradle
 RUN gradle build --no-daemon || return 0
 
