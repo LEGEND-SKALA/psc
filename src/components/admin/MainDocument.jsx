@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { FileUpload } from '.'
 import { SlArrowUp, SlArrowDown } from 'react-icons/sl'
+import { ImBoxRemove } from 'react-icons/im'
 import axios from 'axios'
+import { FaSpinner } from 'react-icons/fa'
 
 const MainDocument = () => {
   const [documentList, setDocumentList] = useState([])
   const [editList, setEditList] = useState([])
+  const [textFileCount, setTextFileCount] = useState(0)
+  const [pdfFileCount, setPdfFileCount] = useState(0)
 
   useEffect(() => {
     fetchDocumentList()
@@ -23,6 +27,15 @@ const MainDocument = () => {
         console.log(response.data)
         if (response.data.code === 0) {
           setDocumentList(response.data.body)
+
+          const textFiles = response.data.body.filter(
+            (item) => item.title.split('.').pop() === 'txt'
+          )
+          const pdfFiles = response.data.body.filter(
+            (item) => item.title.split('.').pop() === 'pdf'
+          )
+          setTextFileCount(textFiles.length)
+          setPdfFileCount(pdfFiles.length)
         } else {
           alert('문서 목록을 가져오는 데 실패했습니다.')
         }
@@ -33,7 +46,7 @@ const MainDocument = () => {
       })
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = (id, setIsDeleted) => {
     axios
       .delete(`${process.env.REACT_APP_SERVER_URL}/documents/${id}`, {
         headers: {
@@ -42,6 +55,7 @@ const MainDocument = () => {
       })
       .then((response) => {
         console.log(response.data)
+        setIsDeleted(false)
         if (response.data.code === 0) {
           alert('문서 삭제 성공')
           fetchDocumentList()
@@ -50,27 +64,26 @@ const MainDocument = () => {
         }
       })
       .catch((error) => {
+        setIsDeleted(false)
         console.error('문서 삭제 오류:', error)
         alert('문서 삭제 중 오류가 발생했습니다.')
       })
   }
 
-  const handleTitleClick = (id) => {
-    if (window.confirm('정말로 삭제하시겠습니까?')) {
-      handleDelete(id)
-    }
+  const handleTitleClick = (id, setIsDeleted) => {
+    handleDelete(id, setIsDeleted)
   }
 
   return (
     <>
       <TitleTop>
         <H1>문서 관리</H1>
-        <SaveBtn>저장하기</SaveBtn>
+        {/* <SaveBtn>저장하기</SaveBtn> */}
       </TitleTop>
 
       <Container>
         <LeftContent>
-          <div>
+          {/* <div>
             <SubTitle>최근 수정 날짜</SubTitle>
 
             <Wrapper>
@@ -79,29 +92,29 @@ const MainDocument = () => {
                 오전 9시 20분
               </LightText>
             </Wrapper>
-          </div>
+          </div> */}
 
           <div>
             <SubTitle>총 문서 수</SubTitle>
             <Wrapper>
               <LightText>
                 <div>PDF 파일</div>
-                <div>10개</div>
+                <div>{pdfFileCount}개</div>
               </LightText>
               <LightText style={{ margin: '0.4rem 0 0.6rem' }}>
                 <div>Text 파일</div>
-                <div>2개</div>
+                <div>{textFileCount}개</div>
               </LightText>
               <BoldText>
                 <div>총 문서 수</div>
-                <div>12개</div>
+                <div>{documentList.length}개</div>
               </BoldText>
             </Wrapper>
           </div>
 
           <FileUploadWrapper>
             <SubTitle>파일 업로드</SubTitle>
-            <FileUpload />
+            <FileUpload fetchDocumentList={fetchDocumentList} />
           </FileUploadWrapper>
         </LeftContent>
 
@@ -115,6 +128,7 @@ const MainDocument = () => {
                 <div>보안등급</div>
                 <div>등록DB</div>
                 <div>업로드 날짜</div>
+                <div>삭제</div>
               </DocumentTitleWrapper>
               <ListItems>
                 {documentList.map((item, index) => (
@@ -132,7 +146,7 @@ const MainDocument = () => {
             </Wrapper>
           </RightContentWrapper>
 
-          <EditBtns>
+          {/* <EditBtns>
             <DownBtn>
               <SlArrowDown size="25" color="#fff" />
             </DownBtn>
@@ -165,7 +179,7 @@ const MainDocument = () => {
                 ))}
               </ListItems>
             </Wrapper>
-          </RightContentWrapper>
+          </RightContentWrapper> */}
         </RightContent>
       </Container>
     </>
@@ -189,10 +203,19 @@ const DocumentItem = ({
   registeredDB = registeredDB === 'SPACE' ? '공간' : '법률'
   uploadDate = uploadDate.split('T')[0]
   uploadDate = uploadDate.replace(/-/g, '.')
+  const [isDeleted, setIsDeleted] = useState(false)
+
+  const handleTitleClickCustom = (id) => {
+    if (window.confirm('정말로 삭제하시겠습니까?')) {
+      setIsDeleted(true)
+      handleTitleClick(id, setIsDeleted)
+      // setIsDeleted(false)
+    }
+  }
 
   return (
     <DocumentItemWrapper>
-      <div onClick={() => handleTitleClick(id)}>{nameWithoutExtension}</div>
+      <div>{nameWithoutExtension}</div>
       <div>
         <Tag
           color={fileType === 'PDF' ? '#6D5C9D' : '#5C5C5C'}
@@ -230,9 +253,25 @@ const DocumentItem = ({
         </Tag>
       </div>
       <div>{uploadDate}</div>
+      <div onClick={() => handleTitleClickCustom(id)}>
+        {isDeleted ? <SpinnerIcon /> : <ImBoxRemove size="20" />}
+      </div>
     </DocumentItemWrapper>
   )
 }
+
+const spin = keyframes`
+  100% {
+    transform: rotate(360deg);
+  }
+`
+
+// 2. 애니메이션이 적용된 Spinner 컴포넌트 생성
+const SpinnerIcon = styled(FaSpinner)`
+  color: #ff8b8b;
+  font-size: 20px;
+  animation: ${spin} 1s linear infinite;
+`
 
 const TitleTop = styled.div`
   display: flex;
@@ -241,7 +280,7 @@ const TitleTop = styled.div`
 `
 const H1 = styled.h1`
   font-size: 1.3rem;
-  margin: 0;
+  margin: 0.6rem 0;
 `
 const SaveBtn = styled.button`
   background-color: #4294ff;
@@ -277,7 +316,7 @@ const Wrapper = styled.div`
   background-color: #fff;
   border-radius: 15px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
-  max-height: 35vh;
+  // max-height: 95vh;
   min-width: 0;
 `
 const Container = styled.div`
@@ -299,6 +338,8 @@ const LeftContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-width: 10rem;
+  max-width: 10rem;
 `
 const RightContent = styled.div`
   display: flex;
@@ -349,21 +390,35 @@ const DocumentItemWrapper = styled.div`
   & > div:nth-child(1) {
     font-weight: 600;
     font-size: 0.85rem;
-    flex: 3;
+    flex: 4;
   }
   & > div:nth-child(2) {
-    flex: 1;
+    flex: 2;
   }
   & > div:nth-child(3) {
-    flex: 1;
+    flex: 2;
   }
   & > div:nth-child(4) {
-    flex: 1;
+    flex: 2;
   }
   & > div:nth-child(5) {
-    flex: 2;
+    flex: 3;
     font-weight: 300;
     font-size: 0.8rem;
+  }
+  & > div:nth-child(6) {
+    flex: 1;
+    font-weight: 300;
+    font-size: 0.8rem;
+    color: #ff8b8b;
+    cursor: pointer;
+
+    &:hover {
+      color: #ff7b7b;
+    }
+    &:active {
+      color: #ff6b6b;
+    }
   }
 `
 const DocumentTitleWrapper = styled.div`
@@ -380,19 +435,22 @@ const DocumentTitleWrapper = styled.div`
     white-space: nowrap;
   }
   & > div:nth-child(1) {
-    flex: 3;
+    flex: 4;
   }
   & > div:nth-child(2) {
-    flex: 1;
+    flex: 2;
   }
   & > div:nth-child(3) {
-    flex: 1;
+    flex: 2;
   }
   & > div:nth-child(4) {
-    flex: 1;
+    flex: 2;
   }
   & > div:nth-child(5) {
-    flex: 2;
+    flex: 3;
+  }
+  & > div:nth-child(6) {
+    flex: 1;
   }
 `
 const Tag = styled.div`

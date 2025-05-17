@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import styled from 'styled-components'
+import styled, { keyframes } from 'styled-components'
 import { IoSearch } from 'react-icons/io5'
 import { RiUserForbidFill } from 'react-icons/ri'
+import { FaSpinner } from 'react-icons/fa'
 
 const MainUser = () => {
   const [userList, setUserList] = useState([])
+  const [searchId, setSearchId] = useState('')
+  const [searchName, setSearchName] = useState('')
+  const [searchDepartment, setSearchDepartment] = useState('')
+  const [searchList, setSearchList] = useState([])
 
   useEffect(() => {
     fetchUserList()
@@ -21,11 +26,47 @@ const MainUser = () => {
       .then((response) => {
         console.log(response.data)
         setUserList(response.data)
+        setSearchList(response.data)
       })
       .catch((error) => {
         console.error('사용자 목록 가져오기 오류:', error)
         // alert('사용자 목록을 가져오는 중 오류가 발생했습니다.')
       })
+  }
+
+  const handleDeleteUser = (userId, setIsDeleted) => {
+    axios
+      .delete(`${process.env.REACT_APP_SERVER_URL}/admin/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('NaviToken')}`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data)
+        setIsDeleted(false)
+        if (response.data.code === 200) {
+          alert('사용자 삭제 성공')
+          fetchUserList()
+        } else {
+          alert('사용자 삭제 실패')
+        }
+      })
+      .catch((error) => {
+        setIsDeleted(false)
+        console.error('사용자 삭제 오류:', error)
+        alert('사용자 삭제 중 오류가 발생했습니다.')
+      })
+  }
+
+  const handleSearch = () => {
+    const filteredUsers = userList.filter((user) => {
+      return (
+        (searchId ? user.employeeId.includes(searchId) : true) &&
+        (searchName ? user.name.includes(searchName) : true) &&
+        (searchDepartment ? user.department.includes(searchDepartment) : true)
+      )
+    })
+    setSearchList(filteredUsers)
   }
 
   return (
@@ -37,28 +78,43 @@ const MainUser = () => {
       <div>
         <SearchTitleWrapper>
           <SubTitle>사용자 검색</SubTitle>
-          <SearchBtn>검색하기</SearchBtn>
+          <SearchBtn onClick={handleSearch}>검색하기</SearchBtn>
         </SearchTitleWrapper>
 
         <SearchInputs>
           <div>
             <SearchTitle>사번</SearchTitle>
             <SearchInput>
-              <Input type="text" placeholder="사번을 입력하세요" />
+              <Input
+                type="text"
+                placeholder="사번을 입력하세요"
+                value={searchId}
+                onChange={(e) => setSearchId(e.target.value)}
+              />
               <IoSearch size={20} color="#5C5C5C" />
             </SearchInput>
           </div>
           <div>
             <SearchTitle>이름</SearchTitle>
             <SearchInput>
-              <Input type="text" placeholder="이름을 입력하세요" />
+              <Input
+                type="text"
+                placeholder="이름을 입력하세요"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+              />
               <IoSearch size={20} color="#5C5C5C" />
             </SearchInput>
           </div>
           <div>
             <SearchTitle>부서</SearchTitle>
             <SearchInput>
-              <Input type="text" placeholder="부서를 입력하세요" />
+              <Input
+                type="text"
+                placeholder="부서를 입력하세요"
+                value={searchDepartment}
+                onChange={(e) => setSearchDepartment(e.target.value)}
+              />
               <IoSearch size={20} color="#5C5C5C" />
             </SearchInput>
           </div>
@@ -90,15 +146,17 @@ const MainUser = () => {
           </UserListTitleWrapper>
 
           <UserListItems>
-            {userList.map((item, index) => (
+            {searchList.map((item, index) => (
               <UserItem
                 key={index}
-                id={item.employeeId}
+                id={item.id}
+                employeeId={item.employeeId}
                 name={item.name}
                 department={item.department}
                 email={item.email}
                 satisfaction={item.averageRating}
                 role={item.role}
+                handleDeleteUser={handleDeleteUser}
               />
             ))}
           </UserListItems>
@@ -109,10 +167,27 @@ const MainUser = () => {
 }
 export default MainUser
 
-const UserItem = ({ id, name, department, email, satisfaction, role }) => {
+const UserItem = ({
+  id,
+  employeeId,
+  name,
+  department,
+  email,
+  satisfaction,
+  role,
+  handleDeleteUser,
+}) => {
+  const [isDeleted, setIsDeleted] = useState(false)
+  const handleTitleClick = (id) => {
+    if (window.confirm('정말로 삭제하시겠습니까?')) {
+      setIsDeleted(true)
+      handleDeleteUser(id, setIsDeleted)
+    }
+  }
+
   return (
     <UserItemWrapper>
-      <div>{id}</div>
+      <div>{employeeId}</div>
       <div>{name}</div>
       <div>{department}</div>
       <div>{email}</div>
@@ -130,13 +205,32 @@ const UserItem = ({ id, name, department, email, satisfaction, role }) => {
         </Tag>
       </div>
       <div>
-        <DeleteBtn>
-          <RiUserForbidFill size={20} color="#D9D9D9" />
-        </DeleteBtn>
+        {isDeleted ? (
+          <DeleteBtn onClick={() => handleTitleClick(id)}>
+            <SpinnerIcon />
+          </DeleteBtn>
+        ) : (
+          <DeleteBtn onClick={() => handleTitleClick(id)}>
+            <RiUserForbidFill size={20} color="#D9D9D9" />
+          </DeleteBtn>
+        )}
       </div>
     </UserItemWrapper>
   )
 }
+
+const spin = keyframes`
+  100% {
+    transform: rotate(360deg);
+  }
+`
+
+// 2. 애니메이션이 적용된 Spinner 컴포넌트 생성
+const SpinnerIcon = styled(FaSpinner)`
+  color: #ff8b8b;
+  font-size: 20px;
+  animation: ${spin} 1s linear infinite;
+`
 
 const TitleTop = styled.div`
   display: flex;
