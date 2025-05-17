@@ -7,8 +7,8 @@ import { FaStar, FaRegStar } from 'react-icons/fa'
 Modal.setAppElement('#root')
 
 const ReviewModal = ({ isOpen, setIsOpen }) => {
-  const handleClose = () => {
-    setIsOpen()
+  const handleClose = (rating) => {
+    setIsOpen(rating)
   }
 
   return (
@@ -19,7 +19,7 @@ const ReviewModal = ({ isOpen, setIsOpen }) => {
       <section>
         <H2>Navi에 얼만큼 만족하고 계신가요?</H2>
         <Comment>스칼라 님의 소중한 의견이 Navi에게 큰 힘이 돼요.</Comment>
-        <StarRating handleClose={handleClose} />
+        <StarRating handleClose={(rating) => handleClose(rating)} />
       </section>
     </Modal>
   )
@@ -46,7 +46,7 @@ const StarRating = ({ handleClose }) => {
         return (
           <ReviewButton
             key={num}
-            onClick={handleClose}
+            onClick={() => handleClose(num)}
             onMouseEnter={() => setHoverRating(num)}
             onMouseLeave={() => setHoverRating(0)}
           >
