@@ -1,11 +1,12 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { WorkspaceImg, BuildingImg, BalanceImg } from '../../assets/main'
 import { ChatInput } from '../chat'
 
 const Main = () => {
+  const [messages, setMessages] = useState([])
+
   useEffect(() => {
-    // 들어오면 자동으로 포커스
     const input = document.querySelector('input')
     if (input) {
       input.focus()
@@ -20,7 +21,7 @@ const Main = () => {
         <MainGreeting>무엇을 도와드릴까요?</MainGreeting>
       </GreetingSection>
 
-      <ChatInput />
+      <ChatInput setMessages={setMessages} />
 
       <ExampleSection>
         <H2>예시 대화</H2>
