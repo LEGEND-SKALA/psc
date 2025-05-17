@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChatInput, ReviewModal } from '../components/chat'
 import { Nav } from '../components/common'
@@ -9,6 +9,8 @@ const ChatPage = () => {
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([])
+  const [modalType, setModalType] = useState('')
+  const [isFetchMessages, setIsFetchMessages] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('NaviToken')
@@ -20,6 +22,25 @@ const ChatPage = () => {
     }
   }, [])
 
+  useEffect(() => {
+    // messages가 바뀔 때마다 가장 아래로 스크롤
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [messages])
+
+  const scrollRef = useRef(null)
+
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
   const fetchMessages = () => {
     axios
       .get(`${process.env.REACT_APP_SERVER_URL}/chat/messages`, {
@@ -30,6 +51,7 @@ const ChatPage = () => {
       .then((response) => {
         console.log('메시지 가져오기 성공:', response.data.body)
         setMessages(response.data.body)
+        setIsFetchMessages(true)
       })
       .catch((error) => {
         console.error('메시지 가져오기 오류:', error)
@@ -39,93 +61,188 @@ const ChatPage = () => {
   const handleOpen = () => {
     setIsOpen(true)
   }
-  const handleClose = () => {
+
+  const handleClose = (rating) => {
     setIsOpen(false)
-    navigate('/')
+
+    if (!rating) {
+      return
+    }
+    if (!messages.length) {
+      alert('리뷰를 제출할 수 없습니다.')
+      if (modalType === 'logout') {
+        localStorage.removeItem('NaviToken')
+        alert('로그아웃 되었습니다.')
+        navigate('/login')
+      } else {
+        navigate('/')
+      }
+      return
+    }
+
+    axios
+      .post(
+        `${process.env.REACT_APP_SERVER_URL}/chat/reviews`,
+        {
+          messageId: messages[messages.length - 1].id,
+          rating: rating,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('NaviToken')}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log('리뷰 제출 성공:', response.data)
+        alert('리뷰 제출 성공')
+
+        if (modalType === 'logout') {
+          localStorage.removeItem('NaviToken')
+          alert('로그아웃 되었습니다.')
+          navigate('/login')
+        } else {
+          navigate('/')
+        }
+      })
+      .catch((error) => {
+        console.error('리뷰 제출 오류:', error)
+        if (modalType === 'logout') {
+          localStorage.removeItem('NaviToken')
+          alert('로그아웃 되었습니다.')
+          navigate('/login')
+        } else {
+          navigate('/')
+        }
+      })
   }
   return (
     <ChatPageContainer>
-      <Nav modalOpen={handleOpen} />
+      <Nav modalOpen={handleOpen} setModalType={setModalType} />
 
       <ChatContainer>
-        <ChatContent>
-          <ChatDate>2025년 5월 8일 목요일</ChatDate>
-          {messages.map((item) => (
-            <ChatItem
-              key={item.id}
-              content={item.message}
-              role={item.sender}
-              date={item.createdAt}
-            />
-          ))}
+        <ChatContent ref={scrollRef}>
+          {messages.map((item, index) => {
+            const currentDate = new Date(item.createdAt).toDateString()
+            const prevDate =
+              index > 0
+                ? new Date(messages[index - 1].createdAt).toDateString()
+                : null
+
+            const shouldShowDate = currentDate !== prevDate
+
+            return (
+              <React.Fragment key={item.id}>
+                {shouldShowDate && (
+                  <ChatDate>
+                    {new Date(item.createdAt).toLocaleDateString('ko-KR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      weekday: 'long',
+                    })}
+                  </ChatDate>
+                )}
+                <ChatItem
+                  content={item.message}
+                  role={item.sender}
+                  isStreaming={item.isStreaming}
+                  setMessages={setMessages}
+                  index={index}
+                  onContentUpdate={scrollToBottom}
+                />
+              </React.Fragment>
+            )
+          })}
         </ChatContent>
 
-        <ChatInput setMessages={setMessages} />
+        <ChatInput
+          setMessages={setMessages}
+          messages={messages}
+          isFetchMessages={isFetchMessages}
+        />
 
         <AlertComment>
           Navi는 실수를 할 수 있습니다. 중요한 정보는 재차 확인하세요.
         </AlertComment>
 
-        <ReviewModal isOpen={isOpen} setIsOpen={handleClose} />
+        <ReviewModal
+          isOpen={isOpen}
+          setIsOpen={(rating) => handleClose(rating)}
+        />
       </ChatContainer>
     </ChatPageContainer>
   )
 }
 export default ChatPage
 
-const ChatItem = ({ content, role, date }) => {
+const ChatItem = ({
+  content,
+  role,
+  isStreaming,
+  setMessages,
+  index,
+  onContentUpdate,
+}) => {
+  const [displayedContent, setDisplayedContent] = useState(
+    isStreaming ? '' : content
+  )
+  const scrollRef = useRef(null)
+
+  const safeContent = typeof content === 'string' ? content : ''
+  const fullContent = safeContent.replace(/^"|"$/g, '').replace(/\\n/g, '\n')
+
+  useEffect(() => {
+    setDisplayedContent(isStreaming ? '' : safeContent)
+  }, [content, isStreaming, safeContent])
+
+  useEffect(() => {
+    if (!isStreaming || role !== 'AGENT') return
+
+    let i = 0
+    const interval = setInterval(() => {
+      i++
+      if (i > fullContent.length) {
+        clearInterval(interval)
+        setMessages((prev) =>
+          prev.map((msg, idx) =>
+            idx === index ? { ...msg, isStreaming: false } : msg
+          )
+        )
+        return
+      }
+      setDisplayedContent(fullContent.slice(0, i))
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+      }
+      if (onContentUpdate) onContentUpdate()
+    }, 10)
+
+    return () => clearInterval(interval)
+  }, [isStreaming, fullContent, role, setMessages, index])
+
+  const formatBold = (text) =>
+    text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  const paragraphs = displayedContent.split(/\n{2,}/)
+
   return (
-    <ChatItemContainer $role={role}>
-      {content.split('\n').map((line, index) => (
-        <ChatItemContent key={index}>
-          {line}
-          {index !== content.split('\n').length - 1 && <br />}
+    <ChatItemContainer ref={scrollRef} $role={role}>
+      {paragraphs.map((paragraph, pIndex) => (
+        <ChatItemContent key={pIndex}>
+          {paragraph.split('\n').map((line, lIndex, arr) => (
+            <React.Fragment key={lIndex}>
+              <span dangerouslySetInnerHTML={{ __html: formatBold(line) }} />
+              {lIndex !== arr.length - 1 && <br />}
+            </React.Fragment>
+          ))}
+          {pIndex !== paragraphs.length - 1 && (
+            <div style={{ height: '1em' }} />
+          )}
         </ChatItemContent>
       ))}
     </ChatItemContainer>
   )
 }
-
-const chatList = [
-  {
-    id: 1,
-    content: '조은정 매니저 님은 어디 계신가요?',
-    role: 'user',
-    date: '2023-10-01',
-  },
-  {
-    id: 2,
-    content:
-      '동명이인이 존재해서 조은정 매니저 님이 속하신 부서를 말씀해주세요.',
-    role: 'navi',
-    date: '2023-10-01',
-  },
-  {
-    id: 3,
-    content: 'SKALA 교육 과정에 참여 중은 조은정 매니저 님을 찾고 있어요.',
-    role: 'user',
-    date: '2023-10-01',
-  },
-  {
-    id: 4,
-    content: 'SK C&C 사옥 내 8층 SKALA 2반에 계십니다.',
-    role: 'navi',
-    date: '2023-10-01',
-  },
-  {
-    id: 5,
-    content: '커피를 사드리려고 하는데, 사내에 카페가 있나요?',
-    role: 'user',
-    date: '2023-10-01',
-  },
-  {
-    id: 6,
-    content:
-      'SK C&C 사옥 내 4층에 카페가 있어요.\n커피 뿐만 아니라 디저트, 주스 등 다양한 디저트를 판매하고 있어요.',
-    role: 'navi',
-    date: '2023-10-01',
-  },
-]
 
 const ChatPageContainer = styled.div`
   display: flex;
@@ -142,7 +259,7 @@ const ChatContainer = styled.div`
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: calc(100vh - 80px);
+  height: calc(100vh - 9rem);
 `
 const AlertComment = styled.p`
   font-size: 0.8rem;
