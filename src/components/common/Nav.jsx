@@ -3,10 +3,11 @@ import styled from 'styled-components'
 import { NaviLogo } from '../../assets/common'
 import { FaPowerOff } from 'react-icons/fa'
 
-const Nav = ({ modalOpen }) => {
+const Nav = ({ modalOpen, setModalType }) => {
   const navigate = useNavigate()
 
   const handleClickHomeBtn = () => {
+    if (setModalType) setModalType('home')
     if (modalOpen) {
       modalOpen()
       console.log('handleOpen')
@@ -14,9 +15,16 @@ const Nav = ({ modalOpen }) => {
   }
 
   const handleLogoutBtn = () => {
-    localStorage.removeItem('NaviToken')
-    alert('로그아웃 되었습니다.')
-    navigate('/login')
+    if (setModalType) setModalType('logout')
+    if (modalOpen) {
+      modalOpen()
+      console.log('handleOpen')
+    } else {
+      localStorage.removeItem('NaviToken')
+      localStorage.removeItem('NaviUserType')
+      alert('로그아웃 되었습니다.')
+      navigate('/login')
+    }
   }
 
   return (
@@ -25,7 +33,7 @@ const Nav = ({ modalOpen }) => {
         <NaviLogo />
       </HomeBtn>
       <NavItems>
-        <UserName>스칼라 님</UserName>
+        <UserName>{localStorage.getItem('NaviUserId')} 님</UserName>
 
         <ExitBtn onClick={handleLogoutBtn}>
           <FaPowerOff size={30} color="#FF8B8B" />
