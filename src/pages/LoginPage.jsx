@@ -5,7 +5,7 @@ import CommonForm from '../components/login/CommonForm'
 import { SKLogo } from '../assets/common'
 import backgroundImg from '../assets/login/img_login_background.svg'
 
-const LoginPage = () => {
+const LoginPage = ({ setUserType }) => {
   // login or signup
   const [pageType, setPageType] = useState('login')
   const location = useLocation()
@@ -22,7 +22,11 @@ const LoginPage = () => {
       <Circle3 $pageType={pageType} />
 
       <Logo />
-      <CommonForm pageType={pageType} setPageType={setPageType} />
+      <CommonForm
+        pageType={pageType}
+        setPageType={setPageType}
+        setUserType={setUserType}
+      />
     </LoginPageContainer>
   )
 }
