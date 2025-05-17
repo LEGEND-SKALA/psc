@@ -2,25 +2,35 @@ import React, { useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import { FolderIcon } from '../../assets/common'
 import axios from 'axios'
+import Select from 'react-select'
 
-const FileUploader = () => {
+const categoryList = [
+  { value: 'REGULATION', label: '법률' },
+  { value: 'SPACE', label: '공간' },
+]
+const securityList = [
+  { value: 'HIGH', label: '상' },
+  { value: 'MEDIUM', label: '중' },
+  { value: 'LOW', label: '하' },
+]
+
+const FileUploader = ({ fetchDocumentList }) => {
   const fileInputRef = useRef(null)
   const [isDragging, setIsDragging] = useState(false)
   const [uploadedFile, setUploadedFile] = useState(null)
+  const [selectedSecurity, setSelectedSecurity] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState(null)
 
-  useEffect(() => {
-    if (uploadedFile) {
-      handleUploadFile()
-    }
-  }, [uploadedFile])
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleUploadFile = () => {
     if (!uploadedFile) return
 
+    setIsLoading(true)
     const formData = new FormData()
     formData.append('file', uploadedFile)
-    formData.append('category', 'SPACE')
-    formData.append('security', 'MEDIUM')
+    formData.append('category', selectedCategory.value)
+    formData.append('security', selectedSecurity.value)
 
     axios
       .post(`${process.env.REACT_APP_SERVER_URL}/documents`, formData, {
@@ -31,13 +41,22 @@ const FileUploader = () => {
       })
       .then((response) => {
         console.log(response.data)
+        setIsLoading(false)
+
+        setUploadedFile(null)
+        setSelectedCategory(null)
+        setSelectedSecurity(null)
+
         if (response.data.code === 0) {
           alert('파일 업로드 성공')
+
+          fetchDocumentList()
         } else {
           alert('파일 업로드 실패')
         }
       })
       .catch((error) => {
+        setIsLoading(false)
         console.error('파일 업로드 오류:', error)
         alert('파일 업로드 중 오류가 발생했습니다.')
       })
@@ -56,35 +75,130 @@ const FileUploader = () => {
   }
 
   return (
-    <Wrapper>
-      <DropArea
-        onDragOver={(e) => {
-          e.preventDefault()
-          setIsDragging(true)
+    <>
+      <StyledSelect
+        options={categoryList}
+        placeholder="문서 종류"
+        onChange={(option) => {
+          setSelectedCategory(option)
         }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        isDragging={isDragging}
-      >
-        <FolderIconWrapper src={FolderIcon} alt="upload" />
-        <UploadComment>파일을 드래그 해서</UploadComment>
-        <UploadComment>업로드 하세요</UploadComment>
+        value={selectedCategory}
+        disabled={isLoading}
+        isLoading={isLoading}
+      />
+      <StyledSelect
+        options={securityList}
+        placeholder="보안 등급"
+        onChange={(option) => {
+          setSelectedSecurity(option)
+        }}
+        value={selectedSecurity}
+        disabled={isLoading}
+        isLoading={isLoading}
+      />
+      <Wrapper>
+        <DropArea
+          onDragOver={(e) => {
+            e.preventDefault()
+            setIsDragging(true)
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          isDragging={isDragging}
+        >
+          <FolderIconWrapper src={FolderIcon} alt="upload" />
 
-        <UploadButton onClick={() => fileInputRef.current?.click()}>
-          파일 선택
-        </UploadButton>
+          {uploadedFile ? (
+            <UploadComment
+              style={{
+                fontWeight: 'bold',
+                fontSize: '0.7rem',
+                margin: '0 0.5rem',
+              }}
+            >
+              {uploadedFile.name} ({Math.round(uploadedFile.size / 1024)} KB)
+            </UploadComment>
+          ) : (
+            <>
+              <UploadComment>파일을 드래그 해서</UploadComment>
+              <UploadComment>업로드 하세요</UploadComment>
+            </>
+          )}
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          style={{ display: 'none' }}
-          onChange={handleFileChange}
-        />
-      </DropArea>
-    </Wrapper>
+          <UploadButton
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+          >
+            파일 선택
+          </UploadButton>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
+        </DropArea>
+
+        <SubmitButton
+          onClick={handleUploadFile}
+          disabled={
+            !uploadedFile || !selectedCategory || !selectedSecurity || isLoading
+          }
+        >
+          업로드
+        </SubmitButton>
+      </Wrapper>
+    </>
   )
 }
 export default FileUploader
+
+const SubmitButton = styled.button`
+  margin-top: 0.3rem;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background-color: #ff8b8b;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  &:hover {
+    background-color: #ff6b6b;
+  }
+  &:active {
+    background-color: #ff4b4b;
+  }
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  &:focus {
+    outline: none;
+  }
+  &:focus-visible {
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+  }
+  &:focus:not(:focus-visible) {
+    box-shadow: none;
+  }
+`
+
+const StyledSelect = styled(Select)`
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.3);
+  border: none !important;
+  border-radius: 5px;
+
+  & > div {
+    border: none !important;
+    // box-shadow: none !important;
+  }
+`
 
 const Wrapper = styled.div`
   display: flex;
@@ -113,7 +227,7 @@ const UploadButton = styled.button`
   padding: 0.5rem 1rem;
   background-color: #4394ff;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   font-weight: bold;
   border: none;
   border-radius: 6px;
@@ -125,6 +239,10 @@ const UploadButton = styled.button`
   }
   &:active {
     background-color: #2f6eff;
+  }
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
   }
 `
 const FolderIconWrapper = styled.img`
