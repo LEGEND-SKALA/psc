@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import vectordb
+from app.routers import router
 from services.init_vectordb import initialize_vectordb
 
 app = FastAPI(
@@ -9,15 +9,20 @@ app = FastAPI(
     version="1.0"
 )
 
+origins = [
+    "http://localhost:8081",
+    "http://172.20.10.15:8082",
+    "http://sk-navi.vercel.app"
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(vectordb.router)
+app.include_router(router.router)
 
 # ✅ 서버 시작 시 VectorDB 초기화
 @app.on_event("startup")

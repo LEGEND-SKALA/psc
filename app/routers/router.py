@@ -1,4 +1,6 @@
 import os
+import shutil
+from pydantic import BaseModel
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from services.init_vectordb import initialize_vectordb
 from services.add_document import add_document
@@ -13,27 +15,48 @@ def init_vectordb():
     return {"message": "✅ 모든 VectorDB 초기화 완료"}
 
 @router.post("/add")
-def add_pdf(file: UploadFile = File(...), category: str = Form(...)):
+async def add_pdf(file: UploadFile = File(...), category: str = Form(...)):
     if category not in ["regulation", "space"]:
         raise HTTPException(status_code=400, detail="category는 regulation 또는 space 여야 합니다.")
 
+    # 임시 경로 저장
     temp_path = f"./temp/{file.filename}"
     os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+
     with open(temp_path, "wb") as f:
-        f.write(file.file.read())
+        shutil.copyfileobj(file.file, f)
 
-    add_document(temp_path, category)
-    os.remove(temp_path)
+    # 핵심 처리
+    try:
+        add_document(temp_path, category)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        os.remove(temp_path)
 
-    return {"message": f"✅ {file.filename} 추가 완료", "category": category}
+    return {"message": f"✅ {file.filename} 처리 완료", "category": category}
+
+class DeleteRequest(BaseModel):
+    filename: str
+    category: str
 
 @router.delete("/delete")
-def delete_pdf(filename: str, category: str):
-    if category not in ["regulation", "space"]:
+def delete_pdf(request: DeleteRequest):
+    if request.category not in ["regulation", "space"]:
         raise HTTPException(status_code=400, detail="category는 regulation 또는 space 여야 합니다.")
 
-    delete_document(filename, category)
-    return {"message": f"🗑️ {filename} 삭제 및 VectorDB 재구축 완료", "category": category}
+    try:
+        result = delete_document(request.filename, request.category)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {
+        "message": "✅ 삭제 요청 처리 완료",
+        "deleted": result["deleted"],
+        "file": result["file"],
+        "category": result["category"],
+        "log": result["log"]
+    }
 
 @router.post("/chat")
 def chat(message_text: str = Form(...)):
