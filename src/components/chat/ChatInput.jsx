@@ -1,22 +1,92 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import styled from 'styled-components'
 import { FaQuestion } from 'react-icons/fa'
 import { IoMicSharp, IoSend } from 'react-icons/io5'
 import axios from 'axios'
 
-const ChatInput = ({ setMessages }) => {
-  const navigate = useNavigate()
-  const currentPage = window.location.pathname
+const ChatInput = ({ setMessages, isFetchMessages }) => {
+  const location = useLocation()
+  const { message } = location.state || {}
+  const [isComposing, setIsComposing] = useState(false)
+  const [currentPage, setCurrentPage] = useState(window.location.pathname)
 
+  const navigate = useNavigate()
   const [inputValue, setInputValue] = useState('')
+
+  useEffect(() => {
+    setCurrentPage(window.location.pathname)
+  }, [window.location.pathname])
+
+  useEffect(() => {
+    setInputValue('')
+  }, [currentPage])
+
+  useEffect(() => {
+    if (isFetchMessages && currentPage === '/chat' && message) {
+      console.log('inputValue:', message)
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          role: 'PC',
+          sender: 'USER',
+          message: message,
+          createdAt: new Date().toISOString(),
+        },
+      ])
+      axios
+        .post(
+          `${process.env.REACT_APP_SERVER_URL}/chat/messages`,
+          {
+            role: 'PC',
+            sender: 'USER',
+            message: message,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('NaviToken')}`,
+            },
+          }
+        )
+        .then((response) => {
+          console.log(response.data)
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              ...response.data.body,
+              isStreaming: true,
+            },
+          ])
+          if (response.data.code == 0) {
+            navigate('/chat')
+          } else {
+            alert('질문 전송에 실패했습니다. 다시 시도해주세요.')
+          }
+        })
+        .catch((error) => {
+          console.error('질문 전송 오류:', error)
+          alert('질문 전송 중 오류가 발생했습니다. 다시 시도해주세요.')
+        })
+    }
+  }, [isFetchMessages])
+
   const handleInputChange = (e) => {
     setInputValue(e.target.value)
   }
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     if (inputValue.trim() === '') return
+
+    const prvMessage = inputValue
+    setInputValue('')
+
+    if (currentPage === '/') {
+      navigate('/chat', {
+        state: { message: prvMessage },
+      })
+    }
 
     const sendMessage = inputValue
     setMessages((prevMessages) => [
@@ -46,6 +116,14 @@ const ChatInput = ({ setMessages }) => {
       )
       .then((response) => {
         console.log(response.data)
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            ...response.data.body,
+            isStreaming: true,
+          },
+        ])
+
         if (response.data.code == 0) {
           navigate('/chat')
         } else {
@@ -69,6 +147,15 @@ const ChatInput = ({ setMessages }) => {
         placeholder="무엇이든 물어보세요"
         onChange={handleInputChange}
         value={inputValue}
+        onKeyDown={(e) => {
+          if (isComposing) return
+          if (e.key === 'Enter') {
+            handleSubmit()
+          }
+        }}
+        onCompositionStart={() => setIsComposing(true)}
+        onCompositionEnd={() => setIsComposing(false)}
+        isComposing={false}
       />
       <Btns>
         <QuestionBtn>
