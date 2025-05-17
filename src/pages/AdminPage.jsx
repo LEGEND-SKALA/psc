@@ -65,28 +65,6 @@ const AdminPage = () => {
       })
   }
 
-  const handleDeleteUser = (userId) => {
-    axios
-      .delete(`${process.env.REACT_APP_SERVER_URL}/admin/users/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('NaviToken')}`,
-        },
-      })
-      .then((response) => {
-        console.log(response.data)
-        if (response.data.code === 200) {
-          alert('사용자 삭제 성공')
-          fetchUserList()
-        } else {
-          alert('사용자 삭제 실패')
-        }
-      })
-      .catch((error) => {
-        console.error('사용자 삭제 오류:', error)
-        alert('사용자 삭제 중 오류가 발생했습니다.')
-      })
-  }
-
   return (
     <AdminPageContainer>
       <Nav />
@@ -191,6 +169,7 @@ const Menu = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
 
   @media (max-width: 900px) {
     flex: 1;
