@@ -7,8 +7,18 @@ import { IoMdPricetag } from 'react-icons/io'
 import { BiSolidLock, BiSolidBriefcase } from 'react-icons/bi'
 import { HiMail } from 'react-icons/hi'
 import { FaCircleUser } from 'react-icons/fa6'
+import Select from 'react-select'
 
-const CommonForm = ({ pageType }) => {
+const departmentList = [
+  { value: 'HR', label: '인사팀' },
+  { value: 'IR', label: 'IR팀' },
+  { value: 'CS', label: 'CS팀' },
+  { value: 'Sales1', label: '영업팀1' },
+  { value: 'Sales2', label: '영업팀2' },
+  { value: 'QA', label: 'QA팀' },
+]
+
+const CommonForm = ({ pageType, setUserType }) => {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -32,6 +42,9 @@ const CommonForm = ({ pageType }) => {
         if (response.data.code == 0) {
           alert('회원가입이 완료되었습니다.')
 
+          setName('')
+          setEmail('')
+          setDepartment('')
           setEmployeeId('')
           setPassword('')
           navigate('/login')
@@ -45,6 +58,10 @@ const CommonForm = ({ pageType }) => {
       })
   }
   const handleLogin = () => {
+    if (employeeId === 'adm' && password === 'adm') {
+      setUserType('admin')
+    }
+
     axios
       .post(`${process.env.REACT_APP_SERVER_URL}/auth/login`, {
         employeeId,
@@ -55,6 +72,11 @@ const CommonForm = ({ pageType }) => {
         if (response.data.code == 0) {
           alert('로그인 성공')
           localStorage.setItem('NaviToken', response.data.body.accessToken)
+          localStorage.setItem(
+            'NaviUserType',
+            employeeId === 'adm' && password === 'adm' ? 'admin' : 'user'
+          )
+          localStorage.setItem('NaviUserId', employeeId)
           navigate('/')
         } else {
           alert('로그인 실패. 아이디와 비밀번호를 확인해주세요.')
@@ -82,12 +104,14 @@ const CommonForm = ({ pageType }) => {
       placeholder: '사번을 입력하세요',
       icon: <IoMdPricetag size={30} color="#5C5C5C" />,
       onChange: (e) => setEmployeeId(e.target.value),
+      value: employeeId,
     },
     {
       type: 'password',
       placeholder: '비밀번호를 입력하세요',
       icon: <BiSolidLock size={30} color="#5C5C5C" />,
       onChange: (e) => setPassword(e.target.value),
+      value: password,
     },
   ]
   // signup input 정보
@@ -97,30 +121,35 @@ const CommonForm = ({ pageType }) => {
       placeholder: '성명을 입력하세요',
       icon: <FaCircleUser size={30} color="#5C5C5C" />,
       onChange: (e) => setName(e.target.value),
+      value: name,
     },
     {
       type: 'text',
       placeholder: '사번을 입력하세요',
       icon: <IoMdPricetag size={30} color="#5C5C5C" />,
       onChange: (e) => setEmployeeId(e.target.value),
+      value: employeeId,
     },
     {
       type: 'text',
       placeholder: '부서를 선택하세요',
       icon: <BiSolidBriefcase size={30} color="#5C5C5C" />,
       onChange: (e) => setDepartment(e.target.value),
+      value: department,
     },
     {
       type: 'email',
       placeholder: '이메일을 입력하세요',
       icon: <HiMail size={30} color="#5C5C5C" />,
       onChange: (e) => setEmail(e.target.value),
+      value: email,
     },
     {
       type: 'password',
       placeholder: '비밀번호를 입력하세요',
       icon: <BiSolidLock size={30} color="#5C5C5C" />,
       onChange: (e) => setPassword(e.target.value),
+      value: password,
     },
   ]
 
@@ -144,6 +173,7 @@ const CommonForm = ({ pageType }) => {
                 placeholder={input.placeholder}
                 icon={input.icon}
                 onChange={input.onChange}
+                value={input.value}
               />
             ))
           : signupInput.map((input, index) => (
@@ -178,17 +208,39 @@ const CommonForm = ({ pageType }) => {
 }
 export default CommonForm
 
-const InputContainer = ({ type, placeholder, icon, onChange }) => {
+const InputContainer = ({ type, placeholder, icon, onChange, value }) => {
   return (
-    <InputWrapper>
-      {icon}
-      <Input
-        required
-        type={type}
-        placeholder={placeholder}
-        onChange={onChange}
-      />
-    </InputWrapper>
+    <>
+      {placeholder === '부서를 선택하세요' ? (
+        <InputWrapper>
+          {icon}
+          {/* <Input
+            required
+            type={type}
+            placeholder={placeholder}
+            onChange={onChange}
+          /> */}
+          <StyledSelect
+            options={departmentList}
+            placeholder={placeholder}
+            onChange={(option) => {
+              onChange({ target: { value: option.value } })
+            }}
+          />
+        </InputWrapper>
+      ) : (
+        <InputWrapper>
+          {icon}
+          <Input
+            required
+            type={type}
+            placeholder={placeholder}
+            onChange={onChange}
+            value={value}
+          />
+        </InputWrapper>
+      )}
+    </>
   )
 }
 
@@ -245,6 +297,23 @@ const Input = styled.input`
     outline: none;
   }
 `
+
+const StyledSelect = styled(Select)`
+  font-size: 0.8rem;
+  width: 100%;
+  background-color: #f1f1f1 !important;
+  margin-bottom: 0.3rem;
+  border: none !important;
+  border-radius: 5px;
+
+  & > div {
+    padding: 0.1rem 0.35rem;
+    border: none !important;
+    // box-shadow: none !important;
+    background-color: #f1f1f1 !important;
+  }
+`
+
 const Button = styled.button`
   width: 100%;
   margin: 0.5rem 0;
