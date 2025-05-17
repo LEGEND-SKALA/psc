@@ -34,6 +34,8 @@ public class Document {
 
     private String title;
 
+    private String storedFileName; // ✅ 서버에 저장된 UUID 기반 파일명
+
     private String filePath;
 
     @Enumerated(EnumType.STRING)

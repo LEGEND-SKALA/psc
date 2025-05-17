@@ -47,7 +47,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://10.250.73.140:3000", "http://localhost:3000", "https://sk-navi.vercel.app/")); // 프론트 개발 주소
+        config.setAllowedOrigins(List.of("http://172.20.10.2:3000", "http://localhost:3000", "https://sk-navi.vercel.app/")); // 프론트 개발 주소
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true); // 쿠키 포함 요청 허용

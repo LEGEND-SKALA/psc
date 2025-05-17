@@ -47,9 +47,10 @@ public class ChatController {
         User user = userRepository.findByEmployeeId(employeeId)
             .orElseThrow(() -> new AuthException("유효하지 않은 사용자입니다."));
 
-        ChatMessage message = chatService.saveMessage(user, request);
+        ChatMessageResponse aiResponse = chatService.saveMessage(user, request);
+
         return ResponseEntity.ok(
-            new ApiResponse<>(0, "메시지가 저장되었습니다.", ChatMessageResponse.from(message))
+            new ApiResponse<>(0, "AI 응답이 생성되었습니다.", aiResponse)
         );
     }
 

@@ -1,16 +1,24 @@
 package navi.navi_be.common.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
+
 
 @Configuration
 public class WebClientConfig {
     
+    @Value("${fastapi.server.url}")
+    private String fastapiBaseUrl;
+
     @Bean
-    public WebClient webClient() {
+    public WebClient fastapiWebClient() {
         return WebClient.builder()
-                .baseUrl("http://10.250.72.251:8000")  // FastAPI IP로 수정
+                .baseUrl(fastapiBaseUrl)
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 }
