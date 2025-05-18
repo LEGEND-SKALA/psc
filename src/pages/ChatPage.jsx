@@ -190,11 +190,11 @@ const ChatItem = ({
   const scrollRef = useRef(null)
 
   const safeContent = typeof content === 'string' ? content : ''
-  const fullContent = safeContent.replace(/^"|"$/g, '').replace(/\\n/g, '\n')
+  const fullContent = safeContent.replace(/^"|"$/g, '').replace(/\\n/g, '\n') // ← 여기서 \\n을 실제 줄바꿈으로
 
   useEffect(() => {
-    setDisplayedContent(isStreaming ? '' : safeContent)
-  }, [content, isStreaming, safeContent])
+    setDisplayedContent(isStreaming ? '' : fullContent)
+  }, [content, isStreaming, fullContent])
 
   useEffect(() => {
     if (!isStreaming || role !== 'AGENT') return
@@ -223,7 +223,8 @@ const ChatItem = ({
 
   const formatBold = (text) =>
     text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  const paragraphs = displayedContent.split(/\n{2,}/)
+
+  const paragraphs = displayedContent.split(/\n{2,}/) // 문단 구분
 
   return (
     <ChatItemContainer ref={scrollRef} $role={role}>
