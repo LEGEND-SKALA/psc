@@ -564,21 +564,11 @@ const SumItemValue = styled.p`
 `
 
 const ApexChart = ({ reviewCount, reviewSum }) => {
-  useEffect(() => {
-    setState({
-      series: [Math.floor((reviewSum / (reviewCount * 5)) * 100) || 0],
-      options: {
-        ...state.options,
-        fill: {
-          ...state.options.fill,
-          colors: ['#61CAFF'],
-        },
-      },
-    })
-  }, [reviewCount, reviewSum])
+  const percentage = Math.floor((reviewSum / (reviewCount * 5)) * 100) || 0
+  const averageScore = (reviewSum / reviewCount).toFixed(1) || '0.0'
 
   const [state, setState] = useState({
-    series: [Math.floor((reviewSum / (reviewCount * 5)) * 100) || 0],
+    series: [percentage],
     options: {
       chart: {
         type: 'radialBar',
@@ -590,22 +580,26 @@ const ApexChart = ({ reviewCount, reviewSum }) => {
       plotOptions: {
         radialBar: {
           hollow: {
-            size: '45%', // 👈 값을 작게 할수록 두께는 두꺼워짐
+            size: '45%',
           },
           startAngle: -135,
           endAngle: 135,
           track: {
             background: '#F2F2F2',
             strokeWidth: '97%',
-            margin: 5, // margin is in pixels
+            margin: 5,
           },
           dataLabels: {
             name: {
               show: false,
             },
             value: {
-              offsetY: -2,
-              fontSize: '22px',
+              offsetY: 0,
+              fontSize: '25px',
+              fontWeight: 'bold',
+              formatter: function () {
+                return averageScore === 'NaN' ? '0.0' : averageScore
+              },
             },
           },
         },
@@ -622,9 +616,34 @@ const ApexChart = ({ reviewCount, reviewSum }) => {
         type: 'solid',
         colors: ['#61CAFF'],
       },
-      labels: ['Average Results'],
+      labels: ['Average Score'],
     },
   })
+
+  useEffect(() => {
+    const newPercentage = Math.floor((reviewSum / (reviewCount * 5)) * 100) || 0
+    const newAverageScore = (reviewSum / reviewCount).toFixed(1) || '0.0'
+
+    setState((prev) => ({
+      series: [newPercentage],
+      options: {
+        ...prev.options,
+        plotOptions: {
+          ...prev.options.plotOptions,
+          radialBar: {
+            ...prev.options.plotOptions.radialBar,
+            dataLabels: {
+              ...prev.options.plotOptions.radialBar.dataLabels,
+              value: {
+                ...prev.options.plotOptions.radialBar.dataLabels.value,
+                formatter: () => newAverageScore,
+              },
+            },
+          },
+        },
+      },
+    }))
+  }, [reviewCount, reviewSum])
 
   return (
     <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>

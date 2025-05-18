@@ -221,21 +221,12 @@ const ChartMainTitle = styled.h2`
 `
 
 const ApexChart = ({ reviewCount, reviewSum }) => {
-  useEffect(() => {
-    setState({
-      series: [Math.floor((reviewSum / (reviewCount * 5)) * 100) || 0],
-      options: {
-        ...state.options,
-        fill: {
-          ...state.options.fill,
-          colors: ['#61CAFF'],
-        },
-      },
-    })
-  }, [reviewCount, reviewSum])
+  const percentage = Math.floor((reviewSum / (reviewCount * 5)) * 100) || 0
+  const averageScore = (reviewSum / reviewCount).toFixed(1)
+  const safeAverage = isNaN(averageScore) ? '0.0' : averageScore
 
   const [state, setState] = useState({
-    series: [Math.floor((reviewSum / (reviewCount * 5)) * 100) || 0],
+    series: [percentage],
     options: {
       chart: {
         type: 'radialBar',
@@ -247,22 +238,26 @@ const ApexChart = ({ reviewCount, reviewSum }) => {
       plotOptions: {
         radialBar: {
           hollow: {
-            size: '45%', // 👈 값을 작게 할수록 두께는 두꺼워짐
+            size: '45%',
           },
           startAngle: -135,
           endAngle: 135,
           track: {
             background: '#F2F2F2',
             strokeWidth: '97%',
-            margin: 5, // margin is in pixels
+            margin: 5,
           },
           dataLabels: {
             name: {
               show: false,
             },
             value: {
-              offsetY: -2,
-              fontSize: '22px',
+              offsetY: 0,
+              fontSize: '25px',
+              fontWeight: 'bold',
+              formatter: function () {
+                return safeAverage
+              },
             },
           },
         },
@@ -279,36 +274,54 @@ const ApexChart = ({ reviewCount, reviewSum }) => {
         type: 'solid',
         colors: ['#61CAFF'],
       },
-      labels: ['Average Results'],
+      labels: ['Average Score'],
     },
   })
+
+  useEffect(() => {
+    const newPercentage = Math.floor((reviewSum / (reviewCount * 5)) * 100) || 0
+    const newAverage = (reviewSum / reviewCount).toFixed(1)
+    const safeNewAverage = isNaN(newAverage) ? '0.0' : newAverage
+
+    setState((prev) => ({
+      series: [newPercentage],
+      options: {
+        ...prev.options,
+        plotOptions: {
+          ...prev.options.plotOptions,
+          radialBar: {
+            ...prev.options.plotOptions.radialBar,
+            dataLabels: {
+              ...prev.options.plotOptions.radialBar.dataLabels,
+              value: {
+                ...prev.options.plotOptions.radialBar.dataLabels.value,
+                formatter: () => safeNewAverage,
+              },
+            },
+          },
+        },
+      },
+    }))
+
+    // 여기서 state는 이전 값이므로 이건 항상 이전 상태 출력함
+    // console.log('state.series:', state.series[0])
+
+    // 이렇게 로깅하는 게 더 정확
+    console.log('업데이트된 퍼센트:', newPercentage)
+    console.log('업데이트된 평균 점수:', safeNewAverage)
+  }, [reviewCount, reviewSum])
 
   return (
     <div style={{ flex: 1, minHeight: 0, minWidth: 0 }}>
       <div style={{ height: '100%' }} id="chart">
         <ReactApexChart
+          key={state.series[0]} // <- 이 줄 추가!
           options={state.options}
           series={state.series}
           type="radialBar"
           height="100%"
-          padding="0"
         />
       </div>
-      <div id="html-dist"></div>
     </div>
   )
-}
-
-const generateDummyData = (startDateStr, endDateStr, min, max) => {
-  const data = []
-  const start = new Date(startDateStr)
-  const end = new Date(endDateStr)
-
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const timestamp = d.getTime()
-    const value = Math.floor(Math.random() * (max - min + 1)) + min
-    data.push([timestamp, value])
-  }
-
-  return data
 }
