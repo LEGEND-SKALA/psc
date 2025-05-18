@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import styled from 'styled-components'
 import { FileUpload } from '.'
 import { SlArrowUp, SlArrowDown } from 'react-icons/sl'

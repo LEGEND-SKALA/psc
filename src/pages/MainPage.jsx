@@ -1,3 +1,4 @@
+import React from 'react'
 import { Nav } from '../components/common'
 import { Main } from '../components/main'
 import styled from 'styled-components'

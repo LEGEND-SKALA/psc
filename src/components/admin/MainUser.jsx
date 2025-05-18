@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import styled, { keyframes } from 'styled-components'
 import { IoSearch } from 'react-icons/io5'

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Nav } from '../components/common'
 import styled from 'styled-components'
 import { MainDashboard, MainDocument, MainUser } from '../components/admin'

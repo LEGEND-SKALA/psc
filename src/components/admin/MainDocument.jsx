@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled, { keyframes } from 'styled-components'
 import { FileUpload } from '.'
 import { SlArrowUp, SlArrowDown } from 'react-icons/sl'
